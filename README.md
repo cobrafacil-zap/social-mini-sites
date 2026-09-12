@@ -98,11 +98,13 @@ middleware.ts                     # rewrite por subdomínio + refresh de sessão
 
 ### `500: INTERNAL_SERVER_ERROR` / `MIDDLEWARE_INVOCATION_FAILED`
 
-A Vercel mostra isso quando o **módulo do middleware** falha ao carregar — não dá para capturar com try/catch porque acontece antes do request handler rodar. Em Next 15 + Supabase, a causa mais comum é uma versão antiga do `@supabase/ssr` (0.5.x) que referencia `__dirname`, que não existe no Edge runtime.
+A Vercel mostra isso quando o **módulo do middleware** falha ao carregar — não dá para capturar com try/catch porque acontece antes do request handler rodar. As causas mais comuns em Next 15:
 
-- Garanta que `package.json` está com `@supabase/ssr: ^0.6.1` e `@supabase/supabase-js: ^2.110.5`. Se estiver mais antigo, bumpe e faça push.
-- Confirme que as 5 env vars estão setadas para **Production** (não só Preview/Development).
-- Force um redeploy: **Deployments → ⋯ → Redeploy**.
+1. **CJS/ESM mismatch**: o Next 15 compila o middleware como ESM, mas a Vercel carrega via `___next_launcher.cjs` (CJS). Sintoma no log do function: `Cannot use import statement outside a module`. Fix: `"type": "module"` em `package.json`.
+2. **`@supabase/ssr` antigo**: 0.5.x referencia `__dirname` que não existe no Edge. Fix: bumpar para 0.6.1+.
+3. **Build em cache**: a Vercel pode estar servindo um build antigo. Vá em **Project Settings → General → Build & Development Settings → Clear Build Cache**, depois **Deployments → ⋯ → Redeploy**.
+
+Antes de tentar qualquer outro fix, faça o passo 3 — resolve 90% dos casos onde "já tentei tudo e continua o mesmo erro".
 
 ### Apex `smdigital.com` dá erro de certificado
 

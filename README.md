@@ -98,11 +98,11 @@ middleware.ts                     # rewrite por subdomínio + refresh de sessão
 
 ### `500: INTERNAL_SERVER_ERROR` / `MIDDLEWARE_INVOCATION_FAILED`
 
-A Vercel mostra isso quando o middleware (`middleware.ts` ou `updateSession`) lança uma exceção. Desde a versão atual, o middleware é **defensivo**: se `NEXT_PUBLIC_SUPABASE_URL` / `ANON_KEY` não estiverem configuradas, o site público continua respondendo e o admin é que não autentica. Se mesmo assim o erro voltar:
+A Vercel mostra isso quando o **módulo do middleware** falha ao carregar — não dá para capturar com try/catch porque acontece antes do request handler rodar. Em Next 15 + Supabase, a causa mais comum é uma versão antiga do `@supabase/ssr` (0.5.x) que referencia `__dirname`, que não existe no Edge runtime.
 
-1. **Vercel → projeto → Logs** copie o stack trace e veja qual linha quebrou.
-2. Confirme que as 5 env vars estão setadas para **Production** (não só Preview/Development).
-3. Force um redeploy: **Deployments → ⋯ → Redeploy**.
+- Garanta que `package.json` está com `@supabase/ssr: ^0.6.1` e `@supabase/supabase-js: ^2.110.5`. Se estiver mais antigo, bumpe e faça push.
+- Confirme que as 5 env vars estão setadas para **Production** (não só Preview/Development).
+- Force um redeploy: **Deployments → ⋯ → Redeploy**.
 
 ### Apex `smdigital.com` dá erro de certificado
 

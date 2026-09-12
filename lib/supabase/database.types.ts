@@ -9,15 +9,11 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
-export type SiteStatus = "draft" | "published" | "disabled";
-export type SiteTemplate = "restaurante" | "loja" | "servicos" | "profissional";
-export type EventTypeName = "view" | "whatsapp" | "instagram" | "comoChegar" | "telefone" | "outro";
-
 export type SiteRow = {
   id: string;
   slug: string;
-  status: SiteStatus;
-  template: SiteTemplate;
+  status: "draft" | "published" | "disabled";
+  template: "restaurante" | "loja" | "servicos" | "profissional";
   company: Json;
   location: Json;
   hours: Json;
@@ -31,36 +27,32 @@ export type SiteRow = {
 export type EventRow = {
   id: number;
   site_id: string;
-  event_type: EventTypeName;
+  event_type: "view" | "whatsapp" | "instagram" | "comoChegar" | "telefone" | "outro";
   created_at: string;
 };
 
+// Mantemos o Database deliberadamente permissivo — a inferência do PostgREST
+// é sensível demais para JSONB quando a tabela tem formas conflitantes.
+// Os tipos fortes vivem em `lib/types.ts` (Site).
 export type Database = {
   public: {
     Tables: {
       sites: {
         Row: SiteRow;
-        Insert: Partial<Omit<SiteRow, "id" | "created_at" | "updated_at">> & {
-          slug: string;
-          template: SiteTemplate;
-          status?: SiteStatus;
-          company?: Json;
-          location?: Json;
-          hours?: Json;
-          gallery?: Json;
-          buttons?: Json;
-          customization?: Json;
-        };
+        Insert: SiteRow;
         Update: Partial<SiteRow>;
+        Relationships: [];
       };
       events: {
         Row: EventRow;
-        Insert: { site_id: string; event_type: EventTypeName; id?: number; created_at?: string };
+        Insert: EventRow;
         Update: Partial<EventRow>;
+        Relationships: [];
       };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
     Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
   };
 };

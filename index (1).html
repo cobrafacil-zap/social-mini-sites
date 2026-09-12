@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Social Mini Sites</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap');
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+"use strict";
+const { useState, useEffect, useRef, useCallback } = React;
+const _ = window._;
+
+/* ---- shim de armazenamento local (funciona fora do Claude, via localStorage) ---- */
+if (!window.storage) {
+  window.storage = {
+    async get(key) {
+      const v = localStorage.getItem(key);
+      if (v === null) throw new Error("not found");
+      return { key, value: v };
+    },
+    async set(key, value) {
+      localStorage.setItem(key, value);
+      return { key, value };
+    },
+    async delete(key) {
+      localStorage.removeItem(key);
+      return { key, deleted: true };
+    },
+    async list(prefix) {
+      const keys = Object.keys(localStorage).filter((k) => !prefix || k.startsWith(prefix));
+      return { keys };
+    },
+  };
+}
+
+/* ---- ícones (Font Awesome, no lugar do lucide-react) ---- */
+const makeIcon = (cls, prefix = "fa-solid") => ({ size = 16, color, style = {} }) =>
+  <i className={`${prefix} fa-${cls}`} style={{ fontSize: size, color, lineHeight: 1, display: "inline-block", ...style }} />;
+
+const LayoutDashboard = makeIcon("table-columns");
+const Plus = makeIcon("plus");
+const Eye = makeIcon("eye");
+const MapPin = makeIcon("location-dot");
+const Phone = makeIcon("phone");
+const Instagram = makeIcon("instagram", "fa-brands");
+const Facebook = makeIcon("facebook", "fa-brands");
+const Globe = makeIcon("globe");
+const MessageCircle = makeIcon("whatsapp", "fa-brands");
+const Clock = makeIcon("clock");
+const ImageIcon = makeIcon("image");
+const Star = makeIcon("star");
+const ShoppingBag = makeIcon("bag-shopping");
+const ShoppingCart = makeIcon("cart-shopping");
+const Briefcase = makeIcon("briefcase");
+const UtensilsCrossed = makeIcon("utensils");
+const User = makeIcon("user");
+const Tag = makeIcon("tag");
+const Calendar = makeIcon("calendar");
+const Pencil = makeIcon("pen");
+const Trash2 = makeIcon("trash");
+const Copy = makeIcon("copy");
+const QrCode = makeIcon("qrcode");
+const ExternalLink = makeIcon("up-right-from-square");
+const ChevronLeft = makeIcon("chevron-left");
+const ChevronRight = makeIcon("chevron-right");
+const X = makeIcon("xmark");
+const Check = makeIcon("check");
+const Palette = makeIcon("palette");
+const LinkIcon = makeIcon("link");
+const BarChart3 = makeIcon("chart-column");
+const LogOut = makeIcon("right-from-bracket");
+const ArrowLeft = makeIcon("arrow-left");
+const CheckCircle2 = makeIcon("circle-check");
+const Building2 = makeIcon("building");
+const MousePointerClick = makeIcon("arrow-pointer");
+const Lock = makeIcon("lock");
+
+
+/* ============================================================
+   CONSTANTES
+   ============================================================ */
+
+const DAYS = [
+  { key: "seg", label: "Segunda" },
+  { key: "ter", label: "Terça" },
+  { key: "qua", label: "Quarta" },
+  { key: "qui", label: "Quinta" },
+  { key: "sex", label: "Sexta" },
+  { key: "sab", label: "Sábado" },
+  { key: "dom", label: "Domingo" },
+];
+
+const ICONS = {
+  whatsapp: MessageCircle,
+  map: MapPin,
+  phone: Phone,
+  instagram: Instagram,
+  facebook: Facebook,
+  globe: Globe,
+  menu: UtensilsCrossed,
+  calendar: Calendar,
+  tag: Tag,
+  cart: ShoppingCart,
+  briefcase: Briefcase,
+  image: ImageIcon,
+  star: Star,
+  bag: ShoppingBag,
+};
+const ICON_OPTIONS = Object.keys(ICONS);
+
+const TEMPLATES = {
+  restaurante: {
+    label: "Restaurante",
+    icon: UtensilsCrossed,
+    buttons: [
+      { name: "Ver cardápio", icon: "menu", link: "" },
+      { name: "Reservar mesa", icon: "calendar", link: "" },
+    ],
+  },
+  loja: {
+    label: "Loja",
+    icon: ShoppingBag,
+    buttons: [
+      { name: "Ver catálogo", icon: "tag", link: "" },
+      { name: "Comprar agora", icon: "cart", link: "" },
+    ],
+  },
+  servicos: {
+    label: "Prestador de serviços",
+    icon: Briefcase,
+    buttons: [
+      { name: "Solicitar orçamento", icon: "briefcase", link: "" },
+      { name: "Ver portfólio", icon: "image", link: "" },
+    ],
+  },
+  profissional: {
+    label: "Profissional autônomo",
+    icon: User,
+    buttons: [
+      { name: "Agendar horário", icon: "calendar", link: "" },
+      { name: "Conhecer serviços", icon: "star", link: "" },
+    ],
+  },
+};
+
+const STEPS = [
+  { key: "empresa", label: "Empresa" },
+  { key: "local", label: "Localização" },
+  { key: "horario", label: "Horários" },
+  { key: "galeria", label: "Galeria" },
+  { key: "botoes", label: "Botões" },
+  { key: "whatsapp", label: "WhatsApp" },
+  { key: "estilo", label: "Personalização" },
+];
+
+const ADMIN_PASSWORD = "admin123";
+
+/* ============================================================
+   STORAGE HELPERS
+   ============================================================ */
+
+async function safeGet(key, fallback) {
+  try {
+    const res = await window.storage.get(key, false);
+    return res ? JSON.parse(res.value) : fallback;
+  } catch (e) {
+    return fallback;
+  }
+}
+async function safeSet(key, value) {
+  try {
+    await window.storage.set(key, JSON.stringify(value), false);
+  } catch (e) {
+    console.error("storage set failed", e);
+  }
+}
+async function safeDelete(key) {
+  try {
+    await window.storage.delete(key, false);
+  } catch (e) {
+    /* ignore */
+  }
+}
+
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function sumRange(daily, field, days) {
+  let total = 0;
+  const now = new Date();
+  for (let i = 0; i < days; i++) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    if (daily[key]) total += daily[key][field] || 0;
+  }
+  return total;
+}
+function sumAll(daily, field) {
+  return Object.values(daily).reduce((acc, d) => acc + (d[field] || 0), 0);
+}
+
+async function loadStats(id) {
+  return safeGet(`stats:${id}`, { daily: {} });
+}
+async function recordEvent(id, field) {
+  const stats = await loadStats(id);
+  const t = todayStr();
+  if (!stats.daily[t]) {
+    stats.daily[t] = { views: 0, whatsapp: 0, instagram: 0, comoChegar: 0, telefone: 0, outro: 0 };
+  }
+  stats.daily[t][field] = (stats.daily[t][field] || 0) + 1;
+  await safeSet(`stats:${id}`, stats);
+  return stats;
+}
+
+function slugify(str) {
+  return (str || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function newId() {
+  return "site_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+function newSite(template) {
+  const id = newId();
+  return {
+    id,
+    slug: `novo-cliente-${id.slice(-4)}`,
+    status: "draft",
+    template,
+    company: {
+      name: "",
+      category: TEMPLATES[template].label,
+      slogan: "",
+      shortDesc: "",
+      history: "",
+      logoUrl: "",
+      coverUrl: "",
+      phone: "",
+      whatsapp: "",
+      whatsappMessage: "Olá! Encontrei vocês pelo mini site e gostaria de mais informações.",
+      instagram: "",
+      facebook: "",
+      website: "",
+      email: "",
+    },
+    location: { address: "", number: "", neighborhood: "", city: "", state: "", zip: "", mapsQuery: "" },
+    hours: DAYS.reduce((acc, d) => {
+      acc[d.key] = { open: "08:00", close: "18:00", closed: d.key === "dom" };
+      return acc;
+    }, {}),
+    gallery: [],
+    buttons: TEMPLATES[template].buttons.map((b, i) => ({ ...b, id: `btn_${i}`, order: i })),
+    customization: {
+      primary: "#145C4B",
+      secondary: "#D9A441",
+      background: "#FFFFFF",
+      text: "#1A1A1A",
+      buttonStyle: "rounded",
+    },
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  };
+}
+
+function radiusFor(style) {
+  if (style === "pill") return 999;
+  if (style === "square") return 4;
+  return 14;
+}
+
+function fullAddress(loc) {
+  return [loc.address, loc.number, loc.neighborhood, loc.city, loc.state, loc.zip].filter(Boolean).join(", ");
+}
+function mapsLink(loc) {
+  const q = loc.mapsQuery || fullAddress(loc);
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
+}
+function mapsEmbed(loc) {
+  const q = loc.mapsQuery || fullAddress(loc);
+  return `https://maps.google.com/maps?q=${encodeURIComponent(q)}&output=embed`;
+}
+function waLink(whatsapp, message) {
+  const digits = (whatsapp || "").replace(/\D/g, "");
+  return `https://wa.me/${digits}?text=${encodeURIComponent(message || "")}`;
+}
+function externalUrl(v) {
+  if (!v) return "";
+  if (v.startsWith("http")) return v;
+  return `https://${v}`;
+}
+function instaUrl(v) {
+  if (!v) return "";
+  if (v.startsWith("http")) return v;
+  return `https://instagram.com/${v.replace(/^@/, "")}`;
+}
+
+function isOpenNow(hours, now) {
+  const jsDay = now.getDay(); // 0 sun .. 6 sat
+  const idx = (jsDay + 6) % 7; // 0 mon .. 6 sun
+  const dayKey = DAYS[idx].key;
+  const today = hours[dayKey];
+  if (!today || today.closed) return false;
+  const cur = now.getHours() * 60 + now.getMinutes();
+  const [oh, om] = (today.open || "00:00").split(":").map(Number);
+  const [ch, cm] = (today.close || "00:00").split(":").map(Number);
+  const openMin = oh * 60 + om;
+  const closeMin = ch * 60 + cm;
+  return cur >= openMin && cur <= closeMin;
+}
+
+/* ============================================================
+   ÁTOMOS DE UI (painel admin)
+   ============================================================ */
+
+function StatusBadge({ status }) {
+  const map = {
+    draft: { label: "Rascunho", bg: "#FBF3DF", fg: "#93650F" },
+    published: { label: "Publicado", bg: "#E4F3EC", fg: "#0E6B4F" },
+    disabled: { label: "Desativado", bg: "#F1E7E6", fg: "#9C3B31" },
+  };
+  const s = map[status] || map.draft;
+  return (
+    <span
+      style={{ background: s.bg, color: s.fg }}
+      className="px-2.5 py-1 rounded-md text-xs font-medium inline-block"
+    >
+      {s.label}
+    </span>
+  );
+}
+
+function KpiCard({ label, value, icon: Icon }) {
+  return (
+    <div className="bg-white border border-[#E7E6E1] rounded-xl p-4 flex items-start justify-between">
+      <div>
+        <p className="text-[13px] text-[#767671]">{label}</p>
+        <p className="text-2xl font-semibold text-[#181A17] mt-1">{value}</p>
+      </div>
+      <div className="w-9 h-9 rounded-lg bg-[#F1F5F2] flex items-center justify-center text-[#145C4B]">
+        <Icon size={17} />
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, children, hint }) {
+  return (
+    <label className="block mb-4">
+      <span className="block text-[13px] font-medium text-[#3A3D38] mb-1.5">{label}</span>
+      {children}
+      {hint && <span className="block text-[12px] text-[#8B8B85] mt-1">{hint}</span>}
+    </label>
+  );
+}
+
+const inputCls =
+  "w-full border border-[#DDDBD4] rounded-lg px-3 py-2 text-[14px] text-[#181A17] bg-white focus:outline-none focus:ring-2 focus:ring-[#145C4B]/30 focus:border-[#145C4B] transition";
+
+/* ============================================================
+   RENDERIZADOR DO MINI SITE (compartilhado: preview e público)
+   ============================================================ */
+
+function MiniSitePublic({ site, interactive, onEvent }) {
+  const [lightbox, setLightbox] = useState(null);
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(t);
+  }, []);
+
+  const c = site.customization;
+  const radius = radiusFor(c.buttonStyle);
+  const open = isOpenNow(site.hours, now);
+
+  const fire = (field, url) => {
+    if (interactive) {
+      onEvent && onEvent(field);
+      if (url) window.open(url, "_blank", "noopener,noreferrer");
+    }
+  };
+
+  const jsDay = now.getDay();
+  const todayIdx = (jsDay + 6) % 7;
+
+  const quickActions = [];
+  if (fullAddress(site.location)) quickActions.push({ label: "Como chegar", icon: "map", action: () => fire("comoChegar", mapsLink(site.location)) });
+  if (site.company.instagram) quickActions.push({ label: "Instagram", icon: "instagram", action: () => fire("instagram", instaUrl(site.company.instagram)) });
+  if (site.company.phone) quickActions.push({ label: "Ligar", icon: "phone", action: () => fire("telefone", `tel:${site.company.phone}`) });
+
+  return (
+    <div style={{ background: "#EDEBE4", minHeight: "100%", transform: "translateZ(0)", position: "relative" }}>
+      <div style={{ maxWidth: 460, margin: "0 auto", background: c.background, color: c.text, fontFamily: "'Inter', sans-serif", minHeight: "100%", position: "relative", boxShadow: "0 0 40px rgba(0,0,0,0.08)" }}>
+        {/* CAPA */}
+        <div style={{ position: "relative", height: 190, background: c.primary, overflow: "hidden" }}>
+          {site.company.coverUrl ? (
+            <img src={site.company.coverUrl} alt="capa" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          ) : (
+            <div style={{ width: "100%", height: "100%", background: `linear-gradient(135deg, ${c.primary}, ${c.secondary})` }} />
+          )}
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.35) 100%)" }} />
+        </div>
+
+        {/* LOGO + NOME */}
+        <div style={{ padding: "0 20px", marginTop: -44, position: "relative" }}>
+          <div style={{ width: 88, height: 88, borderRadius: 22, background: "#fff", border: `3px solid ${c.background}`, overflow: "hidden", boxShadow: "0 4px 14px rgba(0,0,0,0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {site.company.logoUrl ? (
+              <img src={site.company.logoUrl} alt="logo" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            ) : (
+              <Building2 size={30} color={c.primary} />
+            )}
+          </div>
+
+          <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: 26, fontWeight: 600, marginTop: 14, lineHeight: 1.15 }}>
+            {site.company.name || "Nome da empresa"}
+          </h1>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 12.5, padding: "3px 10px", borderRadius: 999, background: `${c.primary}1A`, color: c.primary, fontWeight: 500 }}>
+              {site.company.category || "Categoria"}
+            </span>
+            <span style={{ fontSize: 12.5, display: "flex", alignItems: "center", gap: 4, color: open ? "#0E8F4F" : "#9C3B31", fontWeight: 500 }}>
+              <span style={{ width: 6, height: 6, borderRadius: 999, background: open ? "#0E8F4F" : "#9C3B31", display: "inline-block" }} />
+              {open ? "Aberto agora" : "Fechado agora"}
+            </span>
+          </div>
+          {site.company.slogan && <p style={{ fontSize: 14.5, marginTop: 8, opacity: 0.75, fontStyle: "italic" }}>{site.company.slogan}</p>}
+
+          {/* CTA PRINCIPAL */}
+          <button
+            onClick={() => fire("whatsapp", waLink(site.company.whatsapp, site.company.whatsappMessage))}
+            style={{ marginTop: 16, width: "100%", background: "#1EA956", color: "#fff", border: "none", borderRadius: radius, padding: "13px 16px", fontSize: 15, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer" }}
+          >
+            <MessageCircle size={18} /> Falar no WhatsApp
+          </button>
+
+          {/* AÇÕES RÁPIDAS */}
+          {quickActions.length > 0 && (
+            <div style={{ display: "flex", gap: 8, marginTop: 10, overflowX: "auto", paddingBottom: 2 }}>
+              {quickActions.map((q, i) => {
+                const Icon = ICONS[q.icon];
+                return (
+                  <button
+                    key={i}
+                    onClick={q.action}
+                    style={{ flex: "0 0 auto", display: "flex", alignItems: "center", gap: 6, border: `1px solid ${c.text}22`, background: "transparent", color: c.text, borderRadius: radius, padding: "8px 13px", fontSize: 13, fontWeight: 500, cursor: "pointer" }}
+                  >
+                    <Icon size={14} /> {q.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* SOBRE */}
+        {(site.company.shortDesc || site.company.history) && (
+          <div style={{ padding: "26px 20px 6px" }}>
+            <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 19, marginBottom: 8 }}>Sobre nós</h2>
+            {site.company.shortDesc && <p style={{ fontSize: 14, opacity: 0.85, marginBottom: 6 }}>{site.company.shortDesc}</p>}
+            {site.company.history && <p style={{ fontSize: 13.5, opacity: 0.7, lineHeight: 1.55 }}>{site.company.history}</p>}
+          </div>
+        )}
+
+        {/* GALERIA */}
+        {site.gallery.length > 0 && (
+          <div style={{ padding: "22px 0 6px 20px" }}>
+            <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 19, marginBottom: 10, paddingRight: 20 }}>Galeria</h2>
+            <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, paddingRight: 20 }}>
+              {site.gallery.map((g, i) => (
+                <img
+                  key={g.id}
+                  src={g.url}
+                  onClick={() => setLightbox(i)}
+                  alt=""
+                  style={{ width: 132, height: 132, objectFit: "cover", borderRadius: 12, flex: "0 0 auto", cursor: "pointer" }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* BOTÕES / DESTAQUES */}
+        {site.buttons.length > 0 && (
+          <div style={{ padding: "24px 20px 6px" }}>
+            <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 19, marginBottom: 10 }}>O que você precisa?</h2>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9 }}>
+              {_.sortBy(site.buttons, "order").map((b) => {
+                const Icon = ICONS[b.icon] || Star;
+                return (
+                  <button
+                    key={b.id}
+                    onClick={() => fire("outro", externalUrl(b.link))}
+                    style={{ border: `1px solid ${c.primary}33`, background: `${c.primary}0D`, color: c.text, borderRadius: radius, padding: "14px 10px", fontSize: 13, fontWeight: 500, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer", textAlign: "center" }}
+                  >
+                    <Icon size={18} color={c.primary} />
+                    {b.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* LOCALIZAÇÃO */}
+        {fullAddress(site.location) && (
+          <div style={{ padding: "24px 20px 6px" }}>
+            <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 19, marginBottom: 10 }}>Localização</h2>
+            <p style={{ fontSize: 13.5, opacity: 0.8, marginBottom: 10, display: "flex", gap: 6 }}>
+              <MapPin size={15} style={{ flexShrink: 0, marginTop: 2 }} color={c.primary} /> {fullAddress(site.location)}
+            </p>
+            <div style={{ borderRadius: 12, overflow: "hidden", height: 140, background: "#eee" }}>
+              <iframe title="mapa" src={mapsEmbed(site.location)} width="100%" height="100%" style={{ border: 0 }} loading="lazy" />
+            </div>
+            <button
+              onClick={() => fire("comoChegar", mapsLink(site.location))}
+              style={{ marginTop: 10, width: "100%", border: `1px solid ${c.text}22`, background: "transparent", color: c.text, borderRadius: radius, padding: "10px", fontSize: 13.5, fontWeight: 500, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, cursor: "pointer" }}
+            >
+              <MapPin size={15} /> Como chegar
+            </button>
+          </div>
+        )}
+
+        {/* HORÁRIOS */}
+        <div style={{ padding: "24px 20px 6px" }}>
+          <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 19, marginBottom: 10 }}>Horários</h2>
+          <div style={{ border: `1px solid ${c.text}14`, borderRadius: 12, overflow: "hidden" }}>
+            {DAYS.map((d, i) => {
+              const h = site.hours[d.key];
+              const isToday = i === todayIdx;
+              return (
+                <div
+                  key={d.key}
+                  style={{ display: "flex", justifyContent: "space-between", padding: "9px 13px", fontSize: 13, background: isToday ? `${c.primary}0F` : "transparent", borderBottom: i < 6 ? `1px solid ${c.text}0F` : "none", fontWeight: isToday ? 600 : 400 }}
+                >
+                  <span>{d.label}</span>
+                  <span style={{ opacity: h.closed ? 0.5 : 0.85 }}>{h.closed ? "Fechado" : `${h.open} – ${h.close}`}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* REDES SOCIAIS */}
+        <div style={{ padding: "24px 20px 6px", display: "flex", gap: 10 }}>
+          {site.company.instagram && (
+            <button onClick={() => fire("instagram", instaUrl(site.company.instagram))} style={{ width: 42, height: 42, borderRadius: 999, border: `1px solid ${c.text}22`, background: "transparent", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: c.text }}>
+              <Instagram size={18} />
+            </button>
+          )}
+          {site.company.facebook && (
+            <button onClick={() => fire("outro", externalUrl(site.company.facebook))} style={{ width: 42, height: 42, borderRadius: 999, border: `1px solid ${c.text}22`, background: "transparent", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: c.text }}>
+              <Facebook size={18} />
+            </button>
+          )}
+          {site.company.website && (
+            <button onClick={() => fire("outro", externalUrl(site.company.website))} style={{ width: 42, height: 42, borderRadius: 999, border: `1px solid ${c.text}22`, background: "transparent", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: c.text }}>
+              <Globe size={18} />
+            </button>
+          )}
+        </div>
+
+        {/* CTA FINAL */}
+        <div style={{ margin: "26px 20px 90px", padding: 22, borderRadius: 16, background: c.primary, textAlign: "center" }}>
+          <p style={{ color: "#fff", fontFamily: "'Fraunces', serif", fontSize: 18, marginBottom: 12 }}>Quer falar com a gente?</p>
+          <button
+            onClick={() => fire("whatsapp", waLink(site.company.whatsapp, site.company.whatsappMessage))}
+            style={{ width: "100%", background: "#fff", color: c.primary, border: "none", borderRadius: radius, padding: "12px", fontSize: 14.5, fontWeight: 700, cursor: "pointer" }}
+          >
+            Chamar no WhatsApp
+          </button>
+        </div>
+
+        <p style={{ textAlign: "center", fontSize: 11.5, opacity: 0.4, paddingBottom: 18 }}>Criado com Social Mini Sites</p>
+
+        {/* BOTÃO FLUTUANTE WHATSAPP */}
+        <button
+          onClick={() => fire("whatsapp", waLink(site.company.whatsapp, site.company.whatsappMessage))}
+          style={{ position: "fixed", bottom: 18, right: 18, width: 54, height: 54, borderRadius: 999, background: "#1EA956", border: "none", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 18px rgba(0,0,0,0.25)", cursor: "pointer", zIndex: 40 }}
+        >
+          <MessageCircle size={24} color="#fff" />
+        </button>
+
+        {/* LIGHTBOX */}
+        {lightbox !== null && (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)", zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <button onClick={() => setLightbox(null)} style={{ position: "absolute", top: 16, right: 16, color: "#fff", background: "transparent", border: "none", cursor: "pointer" }}>
+              <X size={26} />
+            </button>
+            {lightbox > 0 && (
+              <button onClick={() => setLightbox(lightbox - 1)} style={{ position: "absolute", left: 10, color: "#fff", background: "transparent", border: "none", cursor: "pointer" }}>
+                <ChevronLeft size={30} />
+              </button>
+            )}
+            <img src={site.gallery[lightbox].url} alt="" style={{ maxWidth: "88%", maxHeight: "78%", objectFit: "contain", borderRadius: 8 }} />
+            {lightbox < site.gallery.length - 1 && (
+              <button onClick={() => setLightbox(lightbox + 1)} style={{ position: "absolute", right: 10, color: "#fff", background: "transparent", border: "none", cursor: "pointer" }}>
+                <ChevronRight size={30} />
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   LOGIN
+   ============================================================ */
+
+function LoginScreen({ onLogin }) {
+  const [pw, setPw] = useState("");
+  const [err, setErr] = useState(false);
+  const submit = (e) => {
+    e.preventDefault();
+    if (pw === ADMIN_PASSWORD) onLogin();
+    else setErr(true);
+  };
+  return (
+    <div style={{ minHeight: "100vh", background: "#F6F6F2", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Inter', sans-serif" }}>
+      <form onSubmit={submit} style={{ width: 340, background: "#fff", border: "1px solid #E7E6E1", borderRadius: 16, padding: 32 }}>
+        <div style={{ width: 42, height: 42, borderRadius: 12, background: "#145C4B", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 18 }}>
+          <LayoutDashboard size={20} color="#fff" />
+        </div>
+        <h1 style={{ fontSize: 19, fontWeight: 600, color: "#181A17" }}>Social Mini Sites</h1>
+        <p style={{ fontSize: 13, color: "#767671", marginTop: 4, marginBottom: 20 }}>Painel administrativo</p>
+        <Field label="Senha de acesso">
+          <input
+            type="password"
+            className={inputCls}
+            value={pw}
+            onChange={(e) => { setPw(e.target.value); setErr(false); }}
+            placeholder="••••••••"
+            autoFocus
+          />
+        </Field>
+        {err && <p style={{ color: "#9C3B31", fontSize: 12.5, marginTop: -10, marginBottom: 12 }}>Senha incorreta. Tente novamente.</p>}
+        <button type="submit" style={{ width: "100%", background: "#145C4B", color: "#fff", border: "none", borderRadius: 10, padding: "11px", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
+          Entrar
+        </button>
+        <p style={{ fontSize: 11.5, color: "#B0B0A8", marginTop: 16, display: "flex", alignItems: "center", gap: 5 }}>
+          <Lock size={11} /> Demo — senha: <code style={{ background: "#F1F1EC", padding: "1px 5px", borderRadius: 4 }}>admin123</code>
+        </p>
+      </form>
+    </div>
+  );
+}
+
+/* ============================================================
+   DASHBOARD
+   ============================================================ */
+
+function Dashboard({ index, statsMap, onCreatePick, onNavigate, onLogout }) {
+  const [showPicker, setShowPicker] = useState(false);
+
+  const totals = { total: index.length, published: 0, draft: 0, views: 0, whatsapp: 0 };
+  index.forEach((s) => {
+    if (s.status === "published") totals.published++;
+    if (s.status === "draft") totals.draft++;
+    const st = statsMap[s.id] || { daily: {} };
+    totals.views += sumAll(st.daily, "views");
+    totals.whatsapp += sumAll(st.daily, "whatsapp");
+  });
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#F6F6F2", fontFamily: "'Inter', sans-serif" }}>
+      <div style={{ maxWidth: 1080, margin: "0 auto", padding: "28px 24px 60px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 26 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 34, height: 34, borderRadius: 9, background: "#145C4B", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <LayoutDashboard size={16} color="#fff" />
+            </div>
+            <h1 style={{ fontSize: 17, fontWeight: 600, color: "#181A17" }}>Social Mini Sites</h1>
+          </div>
+          <button onClick={onLogout} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#767671", background: "transparent", border: "none", cursor: "pointer" }}>
+            <LogOut size={14} /> Sair
+          </button>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginBottom: 26 }}>
+          <KpiCard label="Total de mini sites" value={totals.total} icon={LayoutDashboard} />
+          <KpiCard label="Publicados" value={totals.published} icon={CheckCircle2} />
+          <KpiCard label="Em rascunho" value={totals.draft} icon={Pencil} />
+          <KpiCard label="Visualizações" value={totals.views} icon={Eye} />
+          <KpiCard label="Cliques no WhatsApp" value={totals.whatsapp} icon={MessageCircle} />
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+          <h2 style={{ fontSize: 15, fontWeight: 600, color: "#181A17" }}>Clientes</h2>
+          <button
+            onClick={() => setShowPicker(true)}
+            style={{ display: "flex", alignItems: "center", gap: 6, background: "#145C4B", color: "#fff", border: "none", borderRadius: 9, padding: "9px 15px", fontSize: 13.5, fontWeight: 600, cursor: "pointer" }}
+          >
+            <Plus size={15} /> Criar mini site
+          </button>
+        </div>
+
+        <div style={{ background: "#fff", border: "1px solid #E7E6E1", borderRadius: 12, overflow: "hidden" }}>
+          {index.length === 0 && (
+            <div style={{ padding: 40, textAlign: "center", color: "#8B8B85", fontSize: 13.5 }}>
+              Nenhum mini site ainda. Crie o primeiro clicando em "Criar mini site".
+            </div>
+          )}
+          {index.map((s, i) => {
+            const st = statsMap[s.id] || { daily: {} };
+            const views = sumAll(st.daily, "views");
+            return (
+              <div key={s.id} style={{ display: "flex", alignItems: "center", padding: "14px 18px", borderBottom: i < index.length - 1 ? "1px solid #EFEEE9" : "none", gap: 14 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: "#181A17" }}>{s.name || "(sem nome)"}</p>
+                  <p style={{ fontSize: 12.5, color: "#8B8B85" }}>/{s.slug}</p>
+                </div>
+                <StatusBadge status={s.status} />
+                <div style={{ fontSize: 12.5, color: "#767671", width: 90, textAlign: "right" }}>{views} views</div>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button title="Editar" onClick={() => onNavigate(`#/admin/edit/${s.id}`)} style={iconBtnStyle}><Pencil size={14} /></button>
+                  <button title="Estatísticas" onClick={() => onNavigate(`#/admin/stats/${s.id}`)} style={iconBtnStyle}><BarChart3 size={14} /></button>
+                  {s.status === "published" && (
+                    <button title="Ver mini site" onClick={() => onNavigate(`#/s/${s.slug}`)} style={iconBtnStyle}><ExternalLink size={14} /></button>
+                  )}
+                  <button title="Excluir" onClick={() => onNavigate(`#/admin/delete/${s.id}`)} style={{ ...iconBtnStyle, color: "#9C3B31" }}><Trash2 size={14} /></button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {showPicker && (
+        <TemplatePicker onPick={(t) => { setShowPicker(false); onCreatePick(t); }} onClose={() => setShowPicker(false)} />
+      )}
+    </div>
+  );
+}
+
+const iconBtnStyle = { width: 30, height: 30, borderRadius: 8, border: "1px solid #E7E6E1", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#3A3D38" };
+
+function TemplatePicker({ onPick, onClose }) {
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(20,20,18,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50 }}>
+      <div style={{ background: "#fff", borderRadius: 16, padding: 28, width: 460 }}>
+        <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 4, color: "#181A17" }}>Qual o segmento do cliente?</h3>
+        <p style={{ fontSize: 13, color: "#767671", marginBottom: 18 }}>Isso define os botões e seções sugeridas — você pode ajustar tudo depois.</p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          {Object.entries(TEMPLATES).map(([key, t]) => (
+            <button
+              key={key}
+              onClick={() => onPick(key)}
+              style={{ border: "1px solid #E7E6E1", borderRadius: 12, padding: 16, background: "#FAFAF7", cursor: "pointer", textAlign: "left", display: "flex", flexDirection: "column", gap: 8 }}
+            >
+              <t.icon size={20} color="#145C4B" />
+              <span style={{ fontSize: 13.5, fontWeight: 600, color: "#181A17" }}>{t.label}</span>
+            </button>
+          ))}
+        </div>
+        <button onClick={onClose} style={{ marginTop: 18, fontSize: 13, color: "#767671", background: "transparent", border: "none", cursor: "pointer" }}>Cancelar</button>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   EDITOR
+   ============================================================ */
+
+function Editor({ siteId, onBack, onDataChanged }) {
+  const [site, setSite] = useState(null);
+  const [step, setStep] = useState(0);
+  const [saved, setSaved] = useState(true);
+  const [published, setPublished] = useState(false);
+  const saveTimer = useRef(null);
+
+  useEffect(() => {
+    (async () => {
+      const s = await safeGet(`site:${siteId}`, null);
+      setSite(s);
+    })();
+  }, [siteId]);
+
+  const set = useCallback((path, value) => {
+    setSite((prev) => {
+      const next = _.cloneDeep(prev);
+      _.set(next, path, value);
+      next.updatedAt = Date.now();
+      return next;
+    });
+    setSaved(false);
+  }, []);
+
+  useEffect(() => {
+    if (!site) return;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(async () => {
+      await safeSet(`site:${site.id}`, site);
+      const idx = await safeGet("sites-index", []);
+      const pos = idx.findIndex((i) => i.id === site.id);
+      const summary = { id: site.id, slug: site.slug, name: site.company.name, status: site.status, template: site.template, updatedAt: site.updatedAt };
+      if (pos >= 0) idx[pos] = summary; else idx.push(summary);
+      await safeSet("sites-index", idx);
+      setSaved(true);
+      onDataChanged();
+    }, 500);
+    return () => clearTimeout(saveTimer.current);
+  }, [site]);
+
+  if (!site) return <div style={{ padding: 40, fontFamily: "'Inter', sans-serif" }}>Carregando…</div>;
+
+  const publicUrl = `https://socialminisites.app/${site.slug}`;
+
+  const publish = () => {
+    set("status", "published");
+    setPublished(true);
+  };
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#F6F6F2", fontFamily: "'Inter', sans-serif" }}>
+      <div style={{ background: "#fff", borderBottom: "1px solid #E7E6E1", padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 30 }}>
+        <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13.5, color: "#3A3D38", background: "transparent", border: "none", cursor: "pointer" }}>
+          <ArrowLeft size={15} /> Voltar
+        </button>
+        <div style={{ fontSize: 13, color: "#8B8B85" }}>{saved ? "Salvo" : "Salvando…"}</div>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <StatusBadge status={site.status} />
+          <button onClick={publish} style={{ background: "#145C4B", color: "#fff", border: "none", borderRadius: 9, padding: "8px 15px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+            Publicar mini site
+          </button>
+        </div>
+      </div>
+
+      {published && (
+        <PublishSuccess
+          site={site}
+          publicUrl={publicUrl}
+          onClose={() => setPublished(false)}
+          onView={() => { window.location.hash = `#/s/${site.slug}`; }}
+        />
+      )}
+
+      <div style={{ display: "grid", gridTemplateColumns: "300px 1fr 400px", gap: 0, alignItems: "start" }}>
+        {/* STEPS NAV */}
+        <div style={{ padding: "20px 16px", borderRight: "1px solid #E7E6E1", position: "sticky", top: 57 }}>
+          {STEPS.map((s, i) => (
+            <button
+              key={s.key}
+              onClick={() => setStep(i)}
+              style={{
+                display: "block", width: "100%", textAlign: "left", padding: "10px 12px", borderRadius: 8, marginBottom: 3,
+                background: step === i ? "#EAF1EE" : "transparent", color: step === i ? "#145C4B" : "#3A3D38",
+                fontWeight: step === i ? 600 : 500, fontSize: 13.5, border: "none", cursor: "pointer",
+              }}
+            >
+              {i + 1}. {s.label}
+            </button>
+          ))}
+        </div>
+
+        {/* FORM */}
+        <div style={{ padding: "24px 32px", maxWidth: 620 }}>
+          <EditorStep step={STEPS[step].key} site={site} set={set} />
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 24 }}>
+            <button disabled={step === 0} onClick={() => setStep(step - 1)} style={{ ...navBtn, opacity: step === 0 ? 0.35 : 1 }}>
+              <ChevronLeft size={15} /> Anterior
+            </button>
+            <button disabled={step === STEPS.length - 1} onClick={() => setStep(step + 1)} style={{ ...navBtn, opacity: step === STEPS.length - 1 ? 0.35 : 1 }}>
+              Próximo <ChevronRight size={15} />
+            </button>
+          </div>
+        </div>
+
+        {/* PREVIEW */}
+        <div style={{ padding: "24px 20px", position: "sticky", top: 57 }}>
+          <p style={{ fontSize: 12.5, color: "#8B8B85", marginBottom: 10, textAlign: "center" }}>Pré-visualização em tempo real</p>
+          <div style={{ width: 340, height: 640, margin: "0 auto", borderRadius: 34, border: "9px solid #181A17", overflow: "hidden", position: "relative", background: "#000" }}>
+            <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: 110, height: 18, background: "#181A17", borderRadius: "0 0 12px 12px", zIndex: 5 }} />
+            <div style={{ width: "100%", height: "100%", overflowY: "auto" }}>
+              <MiniSitePublic site={site} interactive={false} onEvent={() => {}} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const navBtn = { display: "flex", alignItems: "center", gap: 5, fontSize: 13, color: "#3A3D38", background: "#fff", border: "1px solid #E7E6E1", borderRadius: 9, padding: "9px 14px", cursor: "pointer" };
+
+function PublishSuccess({ site, publicUrl, onClose, onView }) {
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(publicUrl)}`;
+  const [copied, setCopied] = useState(false);
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(20,20,18,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 60 }}>
+      <div style={{ background: "#fff", borderRadius: 16, padding: 30, width: 380, textAlign: "center" }}>
+        <div style={{ width: 44, height: 44, borderRadius: 999, background: "#E4F3EC", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
+          <Check size={20} color="#0E6B4F" />
+        </div>
+        <h3 style={{ fontSize: 16, fontWeight: 600, color: "#181A17", marginBottom: 4 }}>Mini site publicado!</h3>
+        <p style={{ fontSize: 13, color: "#767671", marginBottom: 18 }}>{publicUrl}</p>
+        <img src={qrUrl} alt="QR Code" style={{ width: 160, height: 160, margin: "0 auto 18px", borderRadius: 8, border: "1px solid #E7E6E1" }} />
+        <div style={{ display: "flex", gap: 8 }}>
+          <a href={qrUrl} download="qrcode.png" style={{ ...navBtn, flex: 1, justifyContent: "center", textDecoration: "none" }}>
+            <QrCode size={14} /> Baixar QR
+          </a>
+          <button
+            onClick={() => { navigator.clipboard?.writeText(publicUrl); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+            style={{ ...navBtn, flex: 1, justifyContent: "center" }}
+          >
+            <Copy size={14} /> {copied ? "Copiado!" : "Copiar link"}
+          </button>
+        </div>
+        <button onClick={onView} style={{ width: "100%", marginTop: 10, background: "#145C4B", color: "#fff", border: "none", borderRadius: 9, padding: "10px", fontSize: 13.5, fontWeight: 600, cursor: "pointer" }}>
+          Ver mini site publicado
+        </button>
+        <button onClick={onClose} style={{ marginTop: 12, fontSize: 12.5, color: "#8B8B85", background: "transparent", border: "none", cursor: "pointer" }}>Fechar</button>
+      </div>
+    </div>
+  );
+}
+
+/* ---- Etapas do editor ---- */
+
+function EditorStep({ step, site, set }) {
+  if (step === "empresa") return <StepEmpresa site={site} set={set} />;
+  if (step === "local") return <StepLocal site={site} set={set} />;
+  if (step === "horario") return <StepHorario site={site} set={set} />;
+  if (step === "galeria") return <StepGaleria site={site} set={set} />;
+  if (step === "botoes") return <StepBotoes site={site} set={set} />;
+  if (step === "whatsapp") return <StepWhatsapp site={site} set={set} />;
+  if (step === "estilo") return <StepEstilo site={site} set={set} />;
+  return null;
+}
+
+function StepEmpresa({ site, set }) {
+  const c = site.company;
+  return (
+    <div>
+      <h2 style={sectionTitle}>Informações da empresa</h2>
+      <Field label="Nome da empresa">
+        <input className={inputCls} value={c.name} onChange={(e) => { set("company.name", e.target.value); if (!site.slugTouched) set("slug", slugify(e.target.value) || site.slug); }} placeholder="Villa Itália" />
+      </Field>
+      <Field label="Slug / URL" hint={`domínio.com/${site.slug || "..."}`}>
+        <input className={inputCls} value={site.slug} onChange={(e) => { set("slugTouched", true); set("slug", slugify(e.target.value)); }} placeholder="villa-italia" />
+      </Field>
+      <Field label="Categoria">
+        <input className={inputCls} value={c.category} onChange={(e) => set("company.category", e.target.value)} placeholder="Restaurante italiano" />
+      </Field>
+      <Field label="Slogan">
+        <input className={inputCls} value={c.slogan} onChange={(e) => set("company.slogan", e.target.value)} placeholder="Sabor autêntico da Itália" />
+      </Field>
+      <Field label="Descrição curta">
+        <textarea className={inputCls} rows={2} value={c.shortDesc} onChange={(e) => set("company.shortDesc", e.target.value)} />
+      </Field>
+      <Field label="História da empresa">
+        <textarea className={inputCls} rows={4} value={c.history} onChange={(e) => set("company.history", e.target.value)} />
+      </Field>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <Field label="URL do logo"><input className={inputCls} value={c.logoUrl} onChange={(e) => set("company.logoUrl", e.target.value)} placeholder="https://..." /></Field>
+        <Field label="URL da foto de capa"><input className={inputCls} value={c.coverUrl} onChange={(e) => set("company.coverUrl", e.target.value)} placeholder="https://..." /></Field>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <Field label="Telefone"><input className={inputCls} value={c.phone} onChange={(e) => set("company.phone", e.target.value)} placeholder="(43) 3000-0000" /></Field>
+        <Field label="E-mail"><input className={inputCls} value={c.email} onChange={(e) => set("company.email", e.target.value)} placeholder="contato@empresa.com" /></Field>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <Field label="Instagram"><input className={inputCls} value={c.instagram} onChange={(e) => set("company.instagram", e.target.value)} placeholder="@empresa" /></Field>
+        <Field label="Facebook"><input className={inputCls} value={c.facebook} onChange={(e) => set("company.facebook", e.target.value)} placeholder="facebook.com/empresa" /></Field>
+      </div>
+      <Field label="Site"><input className={inputCls} value={c.website} onChange={(e) => set("company.website", e.target.value)} placeholder="www.empresa.com" /></Field>
+    </div>
+  );
+}
+
+function StepLocal({ site, set }) {
+  const l = site.location;
+  return (
+    <div>
+      <h2 style={sectionTitle}>Localização</h2>
+      <Field label="Endereço"><input className={inputCls} value={l.address} onChange={(e) => set("location.address", e.target.value)} /></Field>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 12 }}>
+        <Field label="Número"><input className={inputCls} value={l.number} onChange={(e) => set("location.number", e.target.value)} /></Field>
+        <Field label="Bairro"><input className={inputCls} value={l.neighborhood} onChange={(e) => set("location.neighborhood", e.target.value)} /></Field>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 12 }}>
+        <Field label="Cidade"><input className={inputCls} value={l.city} onChange={(e) => set("location.city", e.target.value)} /></Field>
+        <Field label="Estado"><input className={inputCls} value={l.state} onChange={(e) => set("location.state", e.target.value)} placeholder="PR" /></Field>
+        <Field label="CEP"><input className={inputCls} value={l.zip} onChange={(e) => set("location.zip", e.target.value)} /></Field>
+      </div>
+      <Field label="Termo de busca no mapa (opcional)" hint="Deixe em branco para usar o endereço acima">
+        <input className={inputCls} value={l.mapsQuery} onChange={(e) => set("location.mapsQuery", e.target.value)} placeholder="Nome do local no Google Maps" />
+      </Field>
+    </div>
+  );
+}
+
+function StepHorario({ site, set }) {
+  return (
+    <div>
+      <h2 style={sectionTitle}>Horário de funcionamento</h2>
+      {DAYS.map((d) => {
+        const h = site.hours[d.key];
+        return (
+          <div key={d.key} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid #EFEEE9" }}>
+            <span style={{ width: 90, fontSize: 13.5, fontWeight: 500, color: "#3A3D38" }}>{d.label}</span>
+            {!h.closed ? (
+              <>
+                <input type="time" value={h.open} onChange={(e) => set(`hours.${d.key}.open`, e.target.value)} className={inputCls} style={{ width: 120 }} />
+                <span style={{ color: "#8B8B85", fontSize: 12 }}>até</span>
+                <input type="time" value={h.close} onChange={(e) => set(`hours.${d.key}.close`, e.target.value)} className={inputCls} style={{ width: 120 }} />
+              </>
+            ) : (
+              <span style={{ fontSize: 13, color: "#8B8B85", flex: 1 }}>Fechado</span>
+            )}
+            <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, color: "#767671", marginLeft: "auto" }}>
+              <input type="checkbox" checked={h.closed} onChange={(e) => set(`hours.${d.key}.closed`, e.target.checked)} /> Fechado
+            </label>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function StepGaleria({ site, set }) {
+  const [url, setUrl] = useState("");
+  const add = () => {
+    if (!url.trim()) return;
+    set("gallery", [...site.gallery, { id: `img_${Date.now()}`, url: url.trim() }]);
+    setUrl("");
+  };
+  const remove = (id) => set("gallery", site.gallery.filter((g) => g.id !== id));
+  return (
+    <div>
+      <h2 style={sectionTitle}>Galeria de fotos</h2>
+      <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+        <input className={inputCls} value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Cole a URL de uma imagem" onKeyDown={(e) => e.key === "Enter" && add()} />
+        <button onClick={add} style={{ ...navBtn, background: "#145C4B", color: "#fff", borderColor: "#145C4B" }}><Plus size={14} /> Adicionar</button>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+        {site.gallery.map((g) => (
+          <div key={g.id} style={{ position: "relative" }}>
+            <img src={g.url} alt="" style={{ width: "100%", height: 100, objectFit: "cover", borderRadius: 10 }} />
+            <button onClick={() => remove(g.id)} style={{ position: "absolute", top: 5, right: 5, background: "rgba(0,0,0,0.6)", border: "none", borderRadius: 999, width: 22, height: 22, color: "#fff", cursor: "pointer" }}>
+              <X size={12} />
+            </button>
+          </div>
+        ))}
+      </div>
+      {site.gallery.length === 0 && <p style={{ fontSize: 13, color: "#8B8B85" }}>Nenhuma foto adicionada ainda.</p>}
+    </div>
+  );
+}
+
+function StepBotoes({ site, set }) {
+  const update = (id, field, value) => set("buttons", site.buttons.map((b) => (b.id === id ? { ...b, [field]: value } : b)));
+  const add = () => set("buttons", [...site.buttons, { id: `btn_${Date.now()}`, name: "", icon: "star", link: "", order: site.buttons.length }]);
+  const remove = (id) => set("buttons", site.buttons.filter((b) => b.id !== id));
+  const move = (id, dir) => {
+    const arr = _.sortBy(site.buttons, "order");
+    const i = arr.findIndex((b) => b.id === id);
+    const j = i + dir;
+    if (j < 0 || j >= arr.length) return;
+    [arr[i].order, arr[j].order] = [arr[j].order, arr[i].order];
+    set("buttons", arr);
+  };
+  return (
+    <div>
+      <h2 style={sectionTitle}>Botões comerciais</h2>
+      <p style={{ fontSize: 13, color: "#767671", marginBottom: 14 }}>Ex: Solicitar orçamento, Ver cardápio, Fazer pedido, Agendar horário…</p>
+      {_.sortBy(site.buttons, "order").map((b, i) => (
+        <div key={b.id} style={{ border: "1px solid #E7E6E1", borderRadius: 10, padding: 12, marginBottom: 10 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 2fr auto", gap: 8, alignItems: "center" }}>
+            <input className={inputCls} value={b.name} onChange={(e) => update(b.id, "name", e.target.value)} placeholder="Nome do botão" />
+            <select className={inputCls} value={b.icon} onChange={(e) => update(b.id, "icon", e.target.value)}>
+              {ICON_OPTIONS.map((k) => <option key={k} value={k}>{k}</option>)}
+            </select>
+            <input className={inputCls} value={b.link} onChange={(e) => update(b.id, "link", e.target.value)} placeholder="Link (https://...)" />
+            <div style={{ display: "flex", gap: 4 }}>
+              <button onClick={() => move(b.id, -1)} style={iconBtnStyle}><ChevronLeft size={13} style={{ transform: "rotate(90deg)" }} /></button>
+              <button onClick={() => move(b.id, 1)} style={iconBtnStyle}><ChevronLeft size={13} style={{ transform: "rotate(-90deg)" }} /></button>
+              <button onClick={() => remove(b.id)} style={{ ...iconBtnStyle, color: "#9C3B31" }}><Trash2 size={13} /></button>
+            </div>
+          </div>
+        </div>
+      ))}
+      <button onClick={add} style={navBtn}><Plus size={14} /> Adicionar botão</button>
+    </div>
+  );
+}
+
+function StepWhatsapp({ site, set }) {
+  const c = site.company;
+  return (
+    <div>
+      <h2 style={sectionTitle}>WhatsApp</h2>
+      <Field label="Número do WhatsApp"><input className={inputCls} value={c.whatsapp} onChange={(e) => set("company.whatsapp", e.target.value)} placeholder="55 43 90000-0000" /></Field>
+      <Field label="Mensagem automática" hint="Enviada quando o cliente clicar no botão do WhatsApp">
+        <textarea className={inputCls} rows={3} value={c.whatsappMessage} onChange={(e) => set("company.whatsappMessage", e.target.value)} />
+      </Field>
+      <div style={{ background: "#F1F5F2", borderRadius: 10, padding: 12, fontSize: 12.5, color: "#3A3D38" }}>
+        Link gerado: <span style={{ color: "#145C4B", wordBreak: "break-all" }}>{waLink(c.whatsapp, c.whatsappMessage)}</span>
+      </div>
+    </div>
+  );
+}
+
+function StepEstilo({ site, set }) {
+  const c = site.customization;
+  const colorField = (label, key) => (
+    <Field label={label}>
+      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <input type="color" value={c[key]} onChange={(e) => set(`customization.${key}`, e.target.value)} style={{ width: 42, height: 36, border: "1px solid #DDDBD4", borderRadius: 8, padding: 2 }} />
+        <input className={inputCls} value={c[key]} onChange={(e) => set(`customization.${key}`, e.target.value)} />
+      </div>
+    </Field>
+  );
+  return (
+    <div>
+      <h2 style={sectionTitle}>Personalização visual</h2>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        {colorField("Cor principal", "primary")}
+        {colorField("Cor secundária", "secondary")}
+        {colorField("Cor do fundo", "background")}
+        {colorField("Cor dos textos", "text")}
+      </div>
+      <Field label="Estilo dos botões">
+        <div style={{ display: "flex", gap: 8 }}>
+          {["rounded", "pill", "square"].map((s) => (
+            <button
+              key={s}
+              onClick={() => set("customization.buttonStyle", s)}
+              style={{ flex: 1, padding: "10px", borderRadius: radiusFor(s) > 20 ? 999 : radiusFor(s), border: c.buttonStyle === s ? "2px solid #145C4B" : "1px solid #DDDBD4", background: c.buttonStyle === s ? "#EAF1EE" : "#fff", fontSize: 13, cursor: "pointer" }}
+            >
+              {s === "rounded" ? "Arredondado" : s === "pill" ? "Pílula" : "Quadrado"}
+            </button>
+          ))}
+        </div>
+      </Field>
+    </div>
+  );
+}
+
+const sectionTitle = { fontSize: 17, fontWeight: 600, color: "#181A17", marginBottom: 18 };
+
+/* ============================================================
+   PÁGINA DE ESTATÍSTICAS
+   ============================================================ */
+
+function StatsPage({ siteId, onBack }) {
+  const [site, setSite] = useState(null);
+  const [stats, setStats] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      setSite(await safeGet(`site:${siteId}`, null));
+      setStats(await safeGet(`stats:${siteId}`, { daily: {} }));
+    })();
+  }, [siteId]);
+
+  if (!site || !stats) return <div style={{ padding: 40, fontFamily: "'Inter', sans-serif" }}>Carregando…</div>;
+
+  const metrics = [
+    { key: "views", label: "Visualizações", icon: Eye },
+    { key: "whatsapp", label: "Cliques no WhatsApp", icon: MessageCircle },
+    { key: "instagram", label: "Cliques no Instagram", icon: Instagram },
+    { key: "comoChegar", label: 'Cliques em "Como chegar"', icon: MapPin },
+    { key: "telefone", label: "Cliques em telefone", icon: Phone },
+    { key: "outro", label: "Cliques em outros botões", icon: MousePointerClick },
+  ];
+  const ranges = [
+    { label: "Hoje", days: 1 },
+    { label: "Últimos 7 dias", days: 7 },
+    { label: "Últimos 30 dias", days: 30 },
+  ];
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#F6F6F2", fontFamily: "'Inter', sans-serif" }}>
+      <div style={{ maxWidth: 900, margin: "0 auto", padding: "28px 24px 60px" }}>
+        <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13.5, color: "#3A3D38", background: "transparent", border: "none", cursor: "pointer", marginBottom: 18 }}>
+          <ArrowLeft size={15} /> Voltar ao painel
+        </button>
+        <h1 style={{ fontSize: 19, fontWeight: 600, color: "#181A17", marginBottom: 2 }}>{site.company.name || "(sem nome)"}</h1>
+        <p style={{ fontSize: 13, color: "#8B8B85", marginBottom: 22 }}>/{site.slug}</p>
+
+        <div style={{ background: "#fff", border: "1px solid #E7E6E1", borderRadius: 12, overflow: "hidden" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", padding: "12px 18px", background: "#FAFAF7", fontSize: 12.5, fontWeight: 600, color: "#767671" }}>
+            <span>Métrica</span>
+            {ranges.map((r) => <span key={r.label} style={{ textAlign: "right" }}>{r.label}</span>)}
+          </div>
+          {metrics.map((m, i) => (
+            <div key={m.key} style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", padding: "13px 18px", borderTop: "1px solid #EFEEE9", alignItems: "center" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13.5, color: "#181A17" }}><m.icon size={15} color="#145C4B" /> {m.label}</span>
+              {ranges.map((r) => (
+                <span key={r.label} style={{ textAlign: "right", fontSize: 14, fontWeight: 600, color: "#181A17" }}>{sumRange(stats.daily, m.key, r.days)}</span>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   APP RAIZ
+   ============================================================ */
+
+const FONT_IMPORT = `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap');`;
+
+function App() {
+  const [route, setRoute] = useState(window.location.hash || "#/");
+  const [authed, setAuthed] = useState(false);
+  const [checkedAuth, setCheckedAuth] = useState(false);
+  const [index, setIndex] = useState([]);
+  const [statsMap, setStatsMap] = useState({});
+
+  useEffect(() => {
+    const onHash = () => setRoute(window.location.hash || "#/");
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      const a = await safeGet("auth", false);
+      setAuthed(!!a);
+      setCheckedAuth(true);
+    })();
+  }, []);
+
+  const refreshIndex = useCallback(async () => {
+    const idx = await safeGet("sites-index", []);
+    setIndex(idx);
+    const sm = {};
+    for (const s of idx) sm[s.id] = await loadStats(s.id);
+    setStatsMap(sm);
+  }, []);
+
+  useEffect(() => { refreshIndex(); }, [refreshIndex]);
+
+  const navigate = (h) => { window.location.hash = h; };
+
+  const handleLogin = async () => { await safeSet("auth", true); setAuthed(true); navigate("#/admin"); };
+  const handleLogout = async () => { await safeSet("auth", false); setAuthed(false); navigate("#/"); };
+
+  const handleCreate = async (template) => {
+    const site = newSite(template);
+    await safeSet(`site:${site.id}`, site);
+    const idx = await safeGet("sites-index", []);
+    idx.push({ id: site.id, slug: site.slug, name: site.company.name, status: site.status, template: site.template, updatedAt: site.updatedAt });
+    await safeSet("sites-index", idx);
+    await refreshIndex();
+    navigate(`#/admin/edit/${site.id}`);
+  };
+
+  const handleDelete = async (id) => {
+    await safeDelete(`site:${id}`);
+    await safeDelete(`stats:${id}`);
+    const idx = await safeGet("sites-index", []);
+    await safeSet("sites-index", idx.filter((s) => s.id !== id));
+    await refreshIndex();
+    navigate("#/admin");
+  };
+
+  // roteamento simples
+  const m = (pattern) => route.match(pattern);
+
+  let content;
+  const publicMatch = m(/^#\/s\/(.+)$/);
+
+  if (publicMatch) {
+    content = <PublicSiteView slug={publicMatch[1]} onBack={() => navigate("#/admin")} />;
+  } else if (!checkedAuth) {
+    content = <div style={{ minHeight: "100vh" }} />;
+  } else if (!authed) {
+    content = <LoginScreen onLogin={handleLogin} />;
+  } else {
+    const editMatch = m(/^#\/admin\/edit\/(.+)$/);
+    const statsMatch = m(/^#\/admin\/stats\/(.+)$/);
+    const deleteMatch = m(/^#\/admin\/delete\/(.+)$/);
+    if (editMatch) {
+      content = <Editor siteId={editMatch[1]} onBack={() => { navigate("#/admin"); refreshIndex(); }} onDataChanged={refreshIndex} />;
+    } else if (statsMatch) {
+      content = <StatsPage siteId={statsMatch[1]} onBack={() => navigate("#/admin")} />;
+    } else if (deleteMatch) {
+      content = <ConfirmDelete siteId={deleteMatch[1]} index={index} onCancel={() => navigate("#/admin")} onConfirm={() => handleDelete(deleteMatch[1])} />;
+    } else {
+      content = <Dashboard index={index} statsMap={statsMap} onCreatePick={handleCreate} onNavigate={navigate} onLogout={handleLogout} />;
+    }
+  }
+
+  return (
+    <>
+      <style>{FONT_IMPORT}</style>
+      {content}
+    </>
+  );
+}
+
+function ConfirmDelete({ siteId, index, onCancel, onConfirm }) {
+  const s = index.find((i) => i.id === siteId);
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(20,20,18,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 60, fontFamily: "'Inter', sans-serif" }}>
+      <div style={{ background: "#fff", borderRadius: 16, padding: 26, width: 360 }}>
+        <h3 style={{ fontSize: 15.5, fontWeight: 600, color: "#181A17", marginBottom: 8 }}>Excluir mini site?</h3>
+        <p style={{ fontSize: 13, color: "#767671", marginBottom: 20 }}>
+          Isso removerá permanentemente "{s?.name || s?.slug}" e todas as suas estatísticas.
+        </p>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={onCancel} style={{ ...navBtn, flex: 1, justifyContent: "center" }}>Cancelar</button>
+          <button onClick={onConfirm} style={{ flex: 1, background: "#9C3B31", color: "#fff", border: "none", borderRadius: 9, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Excluir</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PublicSiteView({ slug, onBack }) {
+  const [site, setSite] = useState(undefined);
+  const recorded = useRef(false);
+
+  useEffect(() => {
+    (async () => {
+      const idx = await safeGet("sites-index", []);
+      const summary = idx.find((s) => s.slug === slug);
+      if (!summary) { setSite(null); return; }
+      const full = await safeGet(`site:${summary.id}`, null);
+      setSite(full);
+      if (full && full.status === "published" && !recorded.current) {
+        recorded.current = true;
+        recordEvent(full.id, "views");
+      }
+    })();
+  }, [slug]);
+
+  const handleEvent = (field) => {
+    if (site) recordEvent(site.id, field);
+  };
+
+  if (site === undefined) return <div style={{ minHeight: "100vh" }} />;
+  if (!site || site.status !== "published") {
+    return (
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 12, fontFamily: "'Inter', sans-serif" }}>
+        <p style={{ fontSize: 15, color: "#3A3D38" }}>Este mini site não está disponível.</p>
+        <button onClick={onBack} style={navBtn}>Voltar ao painel</button>
+      </div>
+    );
+  }
+
+  return <MiniSitePublic site={site} interactive={true} onEvent={handleEvent} />;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

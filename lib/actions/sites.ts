@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { slugify, isValidSlug } from "@/lib/slugify";
 import { TEMPLATES } from "@/lib/templates";
-import type { Site } from "@/lib/types";
+import { seedFor } from "@/lib/seed";
+import type { Site, Template } from "@/lib/types";
 import { DEFAULT_COMPANY, DEFAULT_CUSTOMIZATION, DEFAULT_HOURS, DEFAULT_LOCATION } from "@/lib/types";
 import type { SiteRow } from "@/lib/supabase/database.types";
 
@@ -18,24 +19,41 @@ async function requireAdmin() {
 
 export async function createSite(formData: FormData): Promise<void> {
   const supabase = await requireAdmin();
-  const template = String(formData.get("template") ?? "") as keyof typeof TEMPLATES;
+  const template = String(formData.get("template") ?? "") as Template;
   if (!TEMPLATES[template]) redirect("/admin/new");
+
+  // Se o admin marcou a opção "preencher com dados de exemplo",
+  // usa o seed do segmento escolhido; senão, usa defaults.
+  const useSeed = formData.get("useSeed") === "on" || formData.get("useSeed") === "true";
+  const seed = useSeed ? seedFor(template) : null;
 
   const id = crypto.randomUUID();
   const tmp = TEMPLATES[template];
-  const slug = slugify(`novo-${tmp.label.toLowerCase()}`) || `site-${id.slice(0, 4)}`;
+  const slug = seed
+    ? slugify(seed.company.name) || `site-${id.slice(0, 4)}`
+    : slugify(`novo-${tmp.label.toLowerCase()}`) || `site-${id.slice(0, 4)}`;
+
+  // Garante que o slug não colide com outro site
+  const { data: existing } = await supabase
+    .from("sites")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
+  const finalSlug = existing ? `${slug}-${id.slice(0, 4)}` : slug;
+
+  const baseButtons = (seed?.buttons ?? tmp.defaultButtons.map((b, i) => ({ ...b, id: `btn_${i}`, order: i })));
 
   const { error } = await supabase.from("sites").insert({
     id,
-    slug,
+    slug: finalSlug,
     template,
     status: "draft",
-    company: { ...DEFAULT_COMPANY, category: tmp.defaultCategory },
-    location: DEFAULT_LOCATION,
-    hours: DEFAULT_HOURS,
-    gallery: [],
-    buttons: tmp.defaultButtons.map((b, i) => ({ ...b, id: `btn_${i}`, order: i })),
-    customization: DEFAULT_CUSTOMIZATION,
+    company: seed?.company ?? { ...DEFAULT_COMPANY, category: tmp.defaultCategory },
+    location: seed?.location ?? DEFAULT_LOCATION,
+    hours: seed?.hours ?? DEFAULT_HOURS,
+    gallery: seed?.gallery ?? [],
+    buttons: baseButtons,
+    customization: seed?.customization ?? DEFAULT_CUSTOMIZATION,
   } satisfies Partial<SiteRow> as never);
   if (error) {
     console.error("createSite error", error);

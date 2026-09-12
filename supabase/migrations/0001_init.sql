@@ -43,8 +43,8 @@ create table if not exists public.events (
   created_at  timestamptz not null default now()
 );
 
-create index if not exists events_site_day_idx
-  on public.events (site_id, event_type, (created_at::date));
+create index if not exists events_site_type_idx
+  on public.events (site_id, event_type, created_at);
 
 -- =============================================================
 -- Trigger: atualiza updated_at a cada UPDATE

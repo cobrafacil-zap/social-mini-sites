@@ -94,6 +94,28 @@ middleware.ts                     # rewrite por subdomínio + refresh de sessão
 - Imagens vão para o bucket `gallery` com limite de 4 MB por arquivo (Vercel route handler).
 - QR codes são gerados server-side em `/api/qr` — substitui o `api.qrserver.com` do projeto original.
 
+## Troubleshooting
+
+### `500: INTERNAL_SERVER_ERROR` / `MIDDLEWARE_INVOCATION_FAILED`
+
+A Vercel mostra isso quando o middleware (`middleware.ts` ou `updateSession`) lança uma exceção. Desde a versão atual, o middleware é **defensivo**: se `NEXT_PUBLIC_SUPABASE_URL` / `ANON_KEY` não estiverem configuradas, o site público continua respondendo e o admin é que não autentica. Se mesmo assim o erro voltar:
+
+1. **Vercel → projeto → Logs** copie o stack trace e veja qual linha quebrou.
+2. Confirme que as 5 env vars estão setadas para **Production** (não só Preview/Development).
+3. Force um redeploy: **Deployments → ⋯ → Redeploy**.
+
+### Apex `smdigital.com` dá erro de certificado
+
+O apex precisa de um registro A (`76.76.21.21`) e o wildcard `*.smdigital.com` precisa de CNAME. Se você configurou só o wildcard, o apex fica sem cert. Adicione `smdigital.com` (sem `www`) também em **Vercel → Domains** — Vercel emite o cert automaticamente.
+
+### O subdomínio do cliente abre 404
+
+Confirme que o site está com `status = 'published'` no Supabase (o RLS esconde `draft` do público). Use o SQL Editor:
+
+```sql
+select slug, status from sites;
+```
+
 ## Desenvolvimento local
 
 Como os subdomínios precisam funcionar localmente, use `lvh.me` (resolve para `127.0.0.1`):

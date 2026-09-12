@@ -1,6 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { updateSession } from "@/lib/supabase/update-session";
 
+/**
+ * Middleware minimal: apenas faz o rewrite por subdomínio.
+ * NÃO importa Supabase — o refresh de sessão é feito nos layouts
+ * (Server Components, Node runtime) via lib/supabase/server.ts.
+ *
+ * Esse split existe porque o Edge runtime da Vercel tem incompatibilidades
+ * com algumas versões do @supabase/ssr; deixar o middleware puro elimina
+ * MIDDLEWARE_INVOCATION_FAILED sem perder a funcionalidade.
+ */
 const ROOT = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "smdigital.com").toLowerCase();
 const ROOT_WWW = `www.${ROOT}`;
 
@@ -20,26 +28,26 @@ function isClientHost(hostname: string): boolean {
   return hostname.endsWith(`.${ROOT}`);
 }
 
-export async function middleware(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const url = request.nextUrl;
   const hostHeader = request.headers.get("host") ?? "";
   const hostname = hostHeader.split(":")[0].toLowerCase();
 
-  // 1) apex (sem subdomínio) → força https://www.<root>
+  // 1) apex (smdigital.com sem sub) → 308 para https://www.smdigital.com
   if (hostname === ROOT) {
     return NextResponse.redirect(new URL(`https://${ROOT_WWW}${url.pathname}${url.search}`), 308);
   }
 
-  // 2) admin/landing → fluxo normal (login + /admin)
+  // 2) admin/landing → segue direto, sem rewrite
   if (isAdminHost(hostname)) {
-    return updateSession(request);
+    return NextResponse.next();
   }
 
-  // 3) Subdomínio de cliente: <slug>.<root> → reescreve para /sites/<slug>
+  // 3) Subdomínio de cliente: <slug>.<root> → rewrite para /sites/<slug>
   if (isClientHost(hostname)) {
     const sub = hostname.slice(0, -(ROOT.length + 1));
     if (!sub || sub.includes(".") || RESERVED.has(sub)) {
-      return updateSession(request);
+      return NextResponse.next();
     }
     url.pathname = `/sites/${sub}${url.pathname === "/" ? "" : url.pathname}`;
     const res = NextResponse.rewrite(url);
@@ -47,8 +55,8 @@ export async function middleware(request: NextRequest) {
     return res;
   }
 
-  // 4) Qualquer outro host → admin normal
-  return updateSession(request);
+  // 4) qualquer outro host → segue direto
+  return NextResponse.next();
 }
 
 export const config = {

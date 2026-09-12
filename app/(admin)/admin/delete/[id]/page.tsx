@@ -10,12 +10,13 @@ export default async function DeletePage({ params }: { params: Promise<{ id: str
   const supabase = await createClient();
   const { data } = await supabase
     .from("sites")
-    .select("id, slug, company")
+    .select("*")
     .eq("id", id)
     .single();
   if (!data) notFound();
 
-  const name = (data.company as { name?: string })?.name || data.slug;
+  const company = (data.company ?? {}) as { name?: string };
+  const name = company.name || data.slug;
 
   return (
     <div className="fixed inset-0 bg-[rgba(20,20,18,0.5)] flex items-center justify-center z-[60]">

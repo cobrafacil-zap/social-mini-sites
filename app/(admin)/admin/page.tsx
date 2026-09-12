@@ -11,17 +11,12 @@ export default async function AdminDashboardPage() {
   const [{ data: sites }, { data: events }] = await Promise.all([
     supabase
       .from("sites")
-      .select("id, slug, status, template, company, updated_at")
+      .select("*")
       .order("updated_at", { ascending: false }),
     supabase.from("events").select("site_id, event_type"),
   ]);
 
-  type Summary = Pick<SiteRow, "id" | "slug" | "status" | "template"> & {
-    company: { name?: string } | null;
-    updated_at: string;
-  };
-
-  const list = (sites ?? []) as unknown as Summary[];
+  const list = (sites ?? []) as SiteRow[];
 
   const totals = list.reduce(
     (acc, s) => {
@@ -77,7 +72,8 @@ export default async function AdminDashboardPage() {
           </div>
         ) : (
           list.map((s, i) => {
-            const name = s.company?.name || "(sem nome)";
+            const company = (s.company ?? {}) as { name?: string };
+            const name = company.name || "(sem nome)";
             const isLast = i === list.length - 1;
             return (
               <div

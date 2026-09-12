@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ConfirmDeleteForm } from "@/components/admin/ConfirmDeleteForm";
+import type { SiteRow } from "@/lib/supabase/database.types";
 
 export const dynamic = "force-dynamic";
 
@@ -13,10 +14,11 @@ export default async function DeletePage({ params }: { params: Promise<{ id: str
     .select("*")
     .eq("id", id)
     .single();
-  if (!data) notFound();
+  const site = (data ?? null) as SiteRow | null;
+  if (!site) notFound();
 
-  const company = (data.company ?? {}) as { name?: string };
-  const name = company.name || data.slug;
+  const company = (site.company ?? {}) as { name?: string };
+  const name = company.name || site.slug;
 
   return (
     <div className="fixed inset-0 bg-[rgba(20,20,18,0.5)] flex items-center justify-center z-[60]">

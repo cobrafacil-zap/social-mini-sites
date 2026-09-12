@@ -64,7 +64,7 @@ export async function updateSite(id: string, patch: Partial<Site>): Promise<{ er
   if (patch.buttons !== undefined) writable.buttons = patch.buttons as unknown as SiteRow["buttons"];
   if (patch.customization !== undefined) writable.customization = patch.customization as unknown as SiteRow["customization"];
 
-  const { error } = await supabase.from("sites").update(writable).eq("id", id);
+  const { error } = await supabase.from("sites").update(writable as never).eq("id", id);
   if (error) {
     if (error.code === "23505") return { error: "Esse slug já está em uso por outro site." };
     return { error: error.message };

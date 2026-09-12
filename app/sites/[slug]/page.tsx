@@ -3,12 +3,13 @@ import { createClient } from "@/lib/supabase/server";
 import { rowToSite } from "@/lib/mappers";
 import { PublicSiteView } from "./PublicSiteView";
 import type { Metadata } from "next";
+import type { SiteRow } from "@/lib/supabase/database.types";
 
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ slug: string }> };
 
-async function loadSiteBySlug(slug: string) {
+async function loadSiteBySlug(slug: string): Promise<SiteRow | null> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("sites")
@@ -16,7 +17,7 @@ async function loadSiteBySlug(slug: string) {
     .eq("slug", slug)
     .eq("status", "published")
     .single();
-  return data ?? null;
+  return (data ?? null) as SiteRow | null;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

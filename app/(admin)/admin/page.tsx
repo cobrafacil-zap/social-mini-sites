@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { LayoutDashboard, Plus, Eye, Pencil, Trash2, BarChart3, ExternalLink, MessageCircle, CheckCircle2 } from "lucide-react";
-import type { SiteRow } from "@/lib/supabase/database.types";
+import type { SiteRow, EventRow } from "@/lib/supabase/database.types";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +17,7 @@ export default async function AdminDashboardPage() {
   ]);
 
   const list = (sites ?? []) as SiteRow[];
+  const eventList = (events ?? []) as Pick<EventRow, "site_id" | "event_type">[];
 
   const totals = list.reduce(
     (acc, s) => {
@@ -30,7 +31,7 @@ export default async function AdminDashboardPage() {
 
   const viewsBySite: Record<string, number> = {};
   const whatsappBySite: Record<string, number> = {};
-  (events ?? []).forEach((e) => {
+  eventList.forEach((e) => {
     if (e.event_type === "view") viewsBySite[e.site_id] = (viewsBySite[e.site_id] ?? 0) + 1;
     if (e.event_type === "whatsapp") whatsappBySite[e.site_id] = (whatsappBySite[e.site_id] ?? 0) + 1;
   });

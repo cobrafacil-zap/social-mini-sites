@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { rowToSite } from "@/lib/mappers";
 import type { EventType } from "@/lib/types";
+import type { SiteRow, EventRow } from "@/lib/supabase/database.types";
 
 export const dynamic = "force-dynamic";
 
@@ -37,13 +38,13 @@ export default async function StatsPage({ params }: { params: Promise<{ id: stri
   ]);
 
   if (!row) notFound();
-  const site = rowToSite(row);
+  const site = rowToSite(row as unknown as SiteRow);
+  const eventList = (events ?? []) as Pick<EventRow, "event_type" | "created_at">[];
 
   const today = new Date();
   const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
 
   function countRange(type: EventType, days: number): number {
-    if (!events) return 0;
     let since = 0;
     if (days === 1) since = startOfToday;
     else {
@@ -52,7 +53,7 @@ export default async function StatsPage({ params }: { params: Promise<{ id: stri
       since = d.getTime();
     }
     let total = 0;
-    for (const e of events) {
+    for (const e of eventList) {
       if (e.event_type !== type) continue;
       const t = new Date(e.created_at).getTime();
       if (t >= since) total++;

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { DemoSitesCard } from "@/components/admin/DemoSitesCard";
 import { LayoutDashboard, Plus, Eye, Pencil, Trash2, BarChart3, ExternalLink, MessageCircle, CheckCircle2 } from "lucide-react";
 import type { SiteRow, EventRow } from "@/lib/supabase/database.types";
 
@@ -66,8 +65,6 @@ export default async function AdminDashboardPage() {
           Icon={MessageCircle}
         />
       </div>
-
-      {list.length === 0 && <DemoSitesCard />}
 
       <div className="bg-white border border-line rounded-xl overflow-hidden">
         {list.length === 0 ? (

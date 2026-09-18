@@ -17,6 +17,20 @@ function mapSignUpError(message: string): string {
   return "Não foi possível criar a conta. Tente novamente.";
 }
 
+function mapSignInError(message: string): string {
+  const m = message.toLowerCase();
+  if (m.includes("email not confirmed")) {
+    return "Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada.";
+  }
+  if (m.includes("invalid login") || m.includes("invalid credentials")) {
+    return "E-mail ou senha inválidos.";
+  }
+  if (m.includes("rate limit")) {
+    return "Muitas tentativas em sequência. Aguarde alguns minutos.";
+  }
+  return "E-mail ou senha inválidos.";
+}
+
 export async function signIn(formData: FormData): Promise<{ error?: string } | void> {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
@@ -28,7 +42,7 @@ export async function signIn(formData: FormData): Promise<{ error?: string } | v
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) {
-    return { error: "E-mail ou senha inválidos." };
+    return { error: mapSignInError(error.message) };
   }
   redirect("/admin");
 }
@@ -50,7 +64,7 @@ export async function signUp(formData: FormData): Promise<{ error?: string } | v
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: name ? { data: { name } } : undefined,
@@ -58,7 +72,15 @@ export async function signUp(formData: FormData): Promise<{ error?: string } | v
   if (error) {
     return { error: mapSignUpError(error.message) };
   }
-  redirect("/admin");
+
+  // Sessão criada (confirmação de email desligada): entra no painel.
+  if (data.session) {
+    redirect("/admin");
+  }
+
+  // Conta criada mas sem sessão: confirmação de email ligada. Pede login
+  // depois de confirmar.
+  redirect("/login?pending=1");
 }
 
 export async function signOut(): Promise<void> {

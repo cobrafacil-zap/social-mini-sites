@@ -18,6 +18,12 @@ export function LoginForm({ initialError }: { initialError: string | null }) {
     if (result?.error) setError(result.error);
   }
 
+  // Mensagens neutras (ex.: "verifique seu email") ganham cor ok; erros ficam em vermelho.
+  const isNeutral = !!error && error.toLowerCase().includes("verifique");
+  const messageClass = isNeutral
+    ? "text-[12.5px] text-ok mb-3"
+    : "text-[12.5px] text-danger mb-3";
+
   return (
     <form action={action} className="w-[340px] bg-white border border-line rounded-2xl p-8">
       <div className="w-[42px] h-[42px] rounded-xl bg-primary flex items-center justify-center mb-[18px]">
@@ -50,7 +56,7 @@ export function LoginForm({ initialError }: { initialError: string | null }) {
       </Field>
 
       {error && (
-        <p className="text-[12.5px] text-danger mb-3">{error}</p>
+        <p className={messageClass}>{error}</p>
       )}
 
       <button

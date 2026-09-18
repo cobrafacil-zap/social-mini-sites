@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -63,11 +64,25 @@ export async function signUp(formData: FormData): Promise<{ error?: string } | v
     return { error: "As senhas não coincidem." };
   }
 
+  // Define para onde o Supabase deve redirecionar depois do email de
+  // confirmação (se a confirmação estiver ligada). Em prod, usa a URL
+  // canônica do projeto; em dev, usa o host do request.
+  const headerStore = await headers();
+  const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
+  const proto = headerStore.get("x-forwarded-proto") ?? "https";
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (host ? `${proto}://${host.split(",")[0].trim()}` : "");
+  const redirectTo = siteUrl ? `${siteUrl.replace(/\/$/, "")}/auth/callback` : undefined;
+
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: name ? { data: { name } } : undefined,
+    options: {
+      ...(name ? { data: { name } } : {}),
+      ...(redirectTo ? { emailRedirectTo: redirectTo } : {}),
+    },
   });
   if (error) {
     return { error: mapSignUpError(error.message) };

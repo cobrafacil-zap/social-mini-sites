@@ -381,13 +381,13 @@ export function MiniSitePublic({ site, interactive, onEvent }: Props) {
         .ms-cover-overlay { position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.35) 100%); }
         .ms-hero { padding:0 20px; margin-top:-44px; position:relative; z-index:2; }
         .ms-logo { width:88px; height:88px; border-radius:22px; background:#fff; overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,0.15); display:flex; align-items:center; justify-content:center; position:relative; z-index:3; }
-        .ms-title { font-family:'Fraunces', serif; font-size:26px; font-weight:600; margin-top:14px; line-height:1.1; word-break:break-word; overflow-wrap:anywhere; position:relative; z-index:2; }
+        .ms-title { font-family:'Inter', sans-serif; font-size:26px; font-weight:800; margin-top:14px; line-height:1.1; word-break:break-word; overflow-wrap:anywhere; position:relative; z-index:2; text-transform:uppercase; letter-spacing:0.5px; }
         .ms-badges { display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap; }
         .ms-badge-cat { font-size:12.5px; padding:3px 10px; border-radius:999px; font-weight:500; }
         .ms-badge-open { font-size:12.5px; display:flex; align-items:center; gap:4px; font-weight:500; }
         .ms-dot { width:6px; height:6px; border-radius:999px; display:inline-block; }
         .ms-slogan { font-size:14.5px; margin-top:8px; opacity:0.75; font-style:italic; }
-        .ms-cta-main { margin-top:16px; width:100%; color:#fff; border:none; padding:13px 16px; font-size:15px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; }
+        .ms-cta-main { margin-top:16px; width:100%; color:#fff; border:none; padding:13px 16px; font-size:15px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; background:#1EA956 !important; }
         .ms-quick { display:flex; gap:8px; margin-top:10px; overflow-x:auto; padding-bottom:2px; scrollbar-width:none; }
         .ms-quick::-webkit-scrollbar { display:none; }
         .ms-quick-btn { flex:0 0 auto; display:flex; align-items:center; gap:6px; background:transparent; padding:8px 13px; font-size:13px; font-weight:500; cursor:pointer; white-space:nowrap; }
@@ -395,7 +395,7 @@ export function MiniSitePublic({ site, interactive, onEvent }: Props) {
         .ms-col { }
         .ms-section { padding:24px 20px 6px; }
         .ms-section.ms-gallery { padding-left:20px; padding-right:0; }
-        .ms-h2 { font-family:'Fraunces', serif; font-size:19px; margin-bottom:10px; }
+        .ms-h2 { font-family:'Inter', sans-serif; font-size:16px; font-weight:800; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.8px; }
         .ms-p { font-size:14px; opacity:0.85; margin-bottom:6px; line-height:1.5; }
         .ms-p-sm { font-size:13.5px; opacity:0.7; line-height:1.55; }
         .ms-gallery-track { display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; padding-right:20px; scrollbar-width:none; }
@@ -411,10 +411,10 @@ export function MiniSitePublic({ site, interactive, onEvent }: Props) {
         .ms-socials { display:flex; gap:10px; }
         .ms-social-btn { width:42px; height:42px; border-radius:999px; background:transparent; display:flex; align-items:center; justify-content:center; cursor:pointer; }
         .ms-cta-box { margin:26px 20px 0; padding:22px; border-radius:16px; text-align:center; }
-        .ms-cta-title { color:#fff; font-family:'Fraunces', serif; font-size:18px; margin-bottom:12px; }
-        .ms-cta-box-btn { width:100%; background:#fff; border:none; padding:12px; font-size:14.5px; font-weight:700; cursor:pointer; }
+        .ms-cta-title { color:#fff; font-family:'Inter', sans-serif; font-size:18px; font-weight:800; margin-bottom:12px; text-transform:uppercase; letter-spacing:0.5px; }
+        .ms-cta-box-btn { width:100%; background:#1EA956 !important; color:#fff !important; border:none; padding:12px; font-size:14.5px; font-weight:800; cursor:pointer; text-transform:uppercase; }
         .ms-footer { text-align:center; font-size:11.5px; opacity:0.4; padding:18px 20px 24px; }
-        .ms-float { position:fixed; bottom:18px; right:18px; width:54px; height:54px; border-radius:999px; background:#1EA956; border:none; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 18px rgba(0,0,0,0.25); cursor:pointer; z-index:40; }
+        .ms-float { position:fixed; bottom:18px; right:18px; width:54px; height:54px; border-radius:999px; background:#1EA956 !important; border:none; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 18px rgba(0,0,0,0.25); cursor:pointer; z-index:40; }
         .ms-lightbox { position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:50; display:flex; align-items:center; justify-content:center; }
         .ms-lightbox-close { position:absolute; top:16px; right:16px; color:#fff; background:transparent; border:none; cursor:pointer; }
         .ms-lightbox-prev { position:absolute; left:10px; color:#fff; background:transparent; border:none; cursor:pointer; }

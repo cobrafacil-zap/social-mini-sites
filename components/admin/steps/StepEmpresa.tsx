@@ -7,6 +7,45 @@ import { Field } from "./Field";
 
 const MAX_BYTES = 4 * 1024 * 1024;
 
+const CATEGORIAS = [
+  "Restaurante",
+  "Lanchonete",
+  "Pizzaria",
+  "Hamburgueria",
+  "Bar / Pub",
+  "Cafeteria",
+  "Padaria",
+  "Confeitaria",
+  "Sorveteria / Açaí",
+  "Loja de Roupas",
+  "Loja de Calçados",
+  "Loja de Moda Feminina",
+  "Loja de Moda Masculina",
+  "Loja Infantil",
+  "Cosméticos / Maquiagem",
+  "Salão de Beleza",
+  "Barbearia",
+  "Estética / Spa",
+  "Academia / Fitness",
+  "Clínica / Consultório",
+  "Odontologia",
+  "Farmácia",
+  "Pet Shop",
+  "Mercado / Supermercado",
+  "Floricultura",
+  "Oficina / Auto",
+  "Imobiliária",
+  "Advocacia",
+  "Contabilidade",
+  "Arquitetura / Engenharia",
+  "Educação / Escola",
+  "Tecnologia / Informática",
+  "Marketing / Design",
+  "Prestador de Serviços",
+  "Profissional Autônomo",
+  "Outros",
+];
+
 export function StepEmpresa({ site, set }: { site: Site; set: (p: string, v: unknown) => void }) {
   const c = site.company;
   const root = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "smdigital.com").toLowerCase();
@@ -70,7 +109,13 @@ export function StepEmpresa({ site, set }: { site: Site; set: (p: string, v: unk
       </Field>
 
       <Field label="Categoria">
-        <input className="input-base" value={c.category} onChange={(e) => set("company.category", e.target.value)} placeholder="Restaurante italiano" />
+        <select className="input-base" value={CATEGORIAS.includes(c.category) ? c.category : c.category ? "Outros" : ""} onChange={(e) => set("company.category", e.target.value)}>
+          <option value="" disabled>Selecione a categoria</option>
+          {CATEGORIAS.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+        </select>
+        {c.category && !CATEGORIAS.includes(c.category) && (
+          <input className="input-base mt-2" value={c.category} onChange={(e) => set("company.category", e.target.value)} placeholder="Digite a categoria" />
+        )}
       </Field>
 
       <Field label="Slogan">

@@ -16,6 +16,7 @@ export type Company = {
   history: string;
   logoUrl: string;
   coverUrl: string;
+  coverPosition: string; // css object-position ex: "50% 30%"
   phone: string;
   whatsapp: string;
   whatsappMessage: string;
@@ -76,6 +77,7 @@ export const DEFAULT_COMPANY: Company = {
   history: "",
   logoUrl: "",
   coverUrl: "",
+  coverPosition: "50% 50%",
   phone: "",
   whatsapp: "",
   whatsappMessage: "Olá! Encontrei vocês pelo mini site e gostaria de mais informações.",

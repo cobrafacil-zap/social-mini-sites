@@ -60,7 +60,12 @@ export function MiniSitePublic({ site, interactive, onEvent }: Props) {
         {/* CAPA */}
         <div className="ms-cover" style={{ background: c.primary }}>
           {site.company.coverUrl ? (
-            <img src={site.company.coverUrl} alt="capa" className="ms-cover-img" />
+            <img
+              src={site.company.coverUrl}
+              alt="capa"
+              className="ms-cover-img"
+              style={{ objectPosition: site.company.coverPosition || "50% 50%" }}
+            />
           ) : (
             <div className="ms-cover-fallback" style={{ background: `linear-gradient(135deg, ${c.primary}, ${c.secondary})` }} />
           )}

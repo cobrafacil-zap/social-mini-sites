@@ -141,7 +141,37 @@ export function StepEmpresa({ site, set }: { site: Site; set: (p: string, v: unk
           <input className="input-base mb-2" value={c.coverUrl} onChange={(e) => set("company.coverUrl", e.target.value)} placeholder="https://... ou faça upload" />
           <input type="file" accept="image/*" disabled={upCover} onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f, "coverUrl"); e.currentTarget.value=""; }} className="text-[13px]" />
           {upCover && <span className="text-[12px] text-muted">Enviando...</span>}
-          {c.coverUrl && <img src={c.coverUrl} alt="capa preview" className="mt-2 w-full h-[80px] object-cover rounded-lg border border-line" />}
+          {c.coverUrl && (
+            <>
+              <img
+                src={c.coverUrl}
+                alt="capa preview"
+                className="mt-2 w-full h-[80px] object-cover rounded-lg border border-line"
+                style={{ objectPosition: c.coverPosition || "50% 50%" }}
+              />
+              <label className="block text-[12px] text-muted mt-2">Ajustar enquadramento (qual parte da foto aparece):</label>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={parseInt((c.coverPosition || "50% 50%").split(" ")[1] || "50", 10)}
+                onChange={(e) => set("company.coverPosition", `50% ${e.target.value}%`)}
+                className="w-full mt-1"
+              />
+              <div className="flex justify-between text-[11px] text-muted">
+                <span>Topo</span><span>Centro</span><span>Base</span>
+              </div>
+              <div className="flex gap-1 mt-2">
+                {[
+                  { label: "Topo", v: "50% 0%" },
+                  { label: "Centro", v: "50% 50%" },
+                  { label: "Base", v: "50% 100%" },
+                ].map((p) => (
+                  <button key={p.v} type="button" onClick={() => set("company.coverPosition", p.v)} className={`text-[11px] px-2 py-1 rounded-md border ${(c.coverPosition || "50% 50%") === p.v ? "bg-primary text-white border-primary" : "bg-white border-line"}`}>{p.label}</button>
+                ))}
+              </div>
+            </>
+          )}
         </Field>
       </div>
       {err && <p className="text-danger text-[12.5px] mb-2">{err}</p>}

@@ -36,7 +36,21 @@ export function middleware(request: NextRequest) {
   }
 
   // 3) client subdomain: <slug>.<root> → rewrite to /sites/<slug>
+  // NÃO reescrever rotas de API, next internals, admin, auth e arquivos
   if (root && hostname.endsWith("." + root)) {
+    const p = url.pathname;
+    if (
+      p.startsWith("/api/") ||
+      p.startsWith("/_next") ||
+      p.startsWith("/admin") ||
+      p.startsWith("/login") ||
+      p.startsWith("/signup") ||
+      p.startsWith("/auth/") ||
+      p === "/favicon.ico" ||
+      p.match(/\.(png|jpg|jpeg|gif|svg|webp|ico)$/)
+    ) {
+      return NextResponse.next();
+    }
     const sub = hostname.slice(0, -(root.length + 1));
     if (!sub || sub.includes(".") || RESERVED.has(sub)) {
       return NextResponse.next();

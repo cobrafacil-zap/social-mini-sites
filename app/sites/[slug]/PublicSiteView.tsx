@@ -10,11 +10,13 @@ export function PublicSiteView({ site }: { site: Site }) {
   function track(type: EventType) {
     const payload = JSON.stringify({ siteId: site.id, type });
     try {
-      if (typeof navigator !== "undefined" && "sendBeacon" in navigator) {
-        navigator.sendBeacon("/api/event", new Blob([payload], { type: "application/json" }));
-      } else {
-        fetch("/api/event", { method: "POST", body: payload, keepalive: true, headers: { "Content-Type": "application/json" } });
-      }
+      // fetch é mais confiável no subdomínio (middleware não reescreve /api)
+      fetch("/api/event", {
+        method: "POST",
+        body: payload,
+        keepalive: true,
+        headers: { "Content-Type": "application/json" },
+      }).catch(() => {});
     } catch {
       /* ignore */
     }

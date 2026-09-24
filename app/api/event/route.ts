@@ -10,13 +10,14 @@ const VALID = new Set(["view", "whatsapp", "instagram", "comoChegar", "telefone"
 export async function POST(req: NextRequest) {
   let body: { siteId?: string; type?: string };
   try {
-    body = await req.json();
+    const text = await req.text();
+    body = text ? JSON.parse(text) : {};
   } catch {
-    return NextResponse.json({ ok: false }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "invalid json" }, { status: 400 });
   }
 
   if (!body.siteId || !body.type || !VALID.has(body.type)) {
-    return NextResponse.json({ ok: false }, { status: 400 });
+    return NextResponse.json({ ok: false, error: "missing siteId/type" }, { status: 400 });
   }
 
   try {

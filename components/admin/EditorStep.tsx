@@ -12,8 +12,8 @@ import { StepEstilo } from "./steps/StepEstilo";
 type StepKey = "empresa" | "local" | "horario" | "galeria" | "botoes" | "whatsapp" | "estilo";
 
 export function EditorStep({
-  step, site, set,
-}: { step: StepKey; site: Site; set: (path: string, value: unknown) => void }) {
+  step, site, set, onSave, saved,
+}: { step: StepKey; site: Site; set: (path: string, value: unknown) => void; onSave?: () => Promise<unknown>; saved?: boolean }) {
   switch (step) {
     case "empresa": return <StepEmpresa site={site} set={set} />;
     case "local":   return <StepLocal site={site} set={set} />;
@@ -21,6 +21,6 @@ export function EditorStep({
     case "galeria": return <StepGaleria site={site} set={set} />;
     case "botoes":  return <StepBotoes site={site} set={set} />;
     case "whatsapp":return <StepWhatsapp site={site} set={set} />;
-    case "estilo":  return <StepEstilo site={site} set={set} />;
+    case "estilo":  return <StepEstilo site={site} set={set} onSave={onSave} saved={saved} />;
   }
 }

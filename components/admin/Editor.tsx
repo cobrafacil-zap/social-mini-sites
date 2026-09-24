@@ -53,6 +53,17 @@ export function Editor({ initial }: { initial: Site }) {
     setSite((prev) => patchSite(prev, path, value));
   }, []);
 
+  const saveNow = useCallback(async () => {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    setSaved(false);
+    setError(null);
+    const result = await updateSite(latestRef.current.id, latestRef.current);
+    if (result?.error) setError(result.error);
+    else setError(null);
+    setSaved(true);
+    return result;
+  }, []);
+
   const publish = () => {
     setPath("status", "published");
     setShowPublish(true);
@@ -102,7 +113,7 @@ export function Editor({ initial }: { initial: Site }) {
         </aside>
 
         <section className="py-6 px-8 max-w-[620px]">
-          <EditorStep step={STEPS[step].key} site={site} set={setPath} />
+          <EditorStep step={STEPS[step].key} site={site} set={setPath} onSave={saveNow} saved={saved} />
           <div className="flex justify-between mt-6">
             <button
               type="button"
@@ -113,15 +124,25 @@ export function Editor({ initial }: { initial: Site }) {
             >
               <ChevronLeft size={15} /> Anterior
             </button>
-            <button
-              type="button"
-              disabled={step === STEPS.length - 1}
-              onClick={() => setStep(step + 1)}
-              className="flex items-center gap-1 text-[13px] text-neutral-700 bg-white border border-line rounded-lg py-2 px-3.5 cursor-pointer"
-              style={{ opacity: step === STEPS.length - 1 ? 0.35 : 1 }}
-            >
-              Próximo <ChevronRight size={15} />
-            </button>
+            {STEPS[step].key === "estilo" ? (
+              <button
+                type="button"
+                onClick={async () => { const r = await saveNow(); if (!r?.error) { /* feedback via_saved */ } }}
+                className="flex items-center gap-1 text-[13px] bg-primary text-white border border-primary rounded-lg py-2 px-5 font-semibold cursor-pointer"
+              >
+                <Check size={15} /> Salvar alterações
+              </button>
+            ) : (
+              <button
+                type="button"
+                disabled={step === STEPS.length - 1}
+                onClick={() => setStep(step + 1)}
+                className="flex items-center gap-1 text-[13px] text-neutral-700 bg-white border border-line rounded-lg py-2 px-3.5 cursor-pointer"
+                style={{ opacity: step === STEPS.length - 1 ? 0.35 : 1 }}
+              >
+                Próximo <ChevronRight size={15} />
+              </button>
+            )}
           </div>
         </section>
 

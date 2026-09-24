@@ -1,22 +1,33 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const ROOT = "smdigital.com";
-const ROOT_WWW = "www." + ROOT;
+const ROOTS = ["smdigtal.com", "smdigital.com"];
 const RESERVED = new Set(["www", "admin", "api", "cdn", "assets", "static", "app", "mail"]);
+
+function rootFor(hostname: string): string | null {
+  for (const r of ROOTS) {
+    if (hostname === r || hostname.endsWith("." + r)) return r;
+  }
+  // também respeita env se for outro domínio
+  const envRoot = (process.env.NEXT_PUBLIC_ROOT_DOMAIN || "").toLowerCase().replace(/^www\./, "").split(":")[0];
+  if (envRoot && (hostname === envRoot || hostname.endsWith("." + envRoot))) return envRoot;
+  return null;
+}
 
 export function middleware(request: NextRequest) {
   const url = request.nextUrl;
   const hostHeader = request.headers.get("host") || "";
   const hostname = hostHeader.split(":")[0].toLowerCase();
 
-  // 1) apex (smdigital.com) → redirect to www
-  if (hostname === ROOT) {
-    return NextResponse.redirect(new URL("https://" + ROOT_WWW + url.pathname + url.search), 308);
+  const root = rootFor(hostname);
+
+  // 1) apex (smdigtal.com / smdigital.com) → redirect to www
+  if (root && hostname === root) {
+    return NextResponse.redirect(new URL("https://www." + root + url.pathname + url.search), 308);
   }
 
   // 2) admin host → passthrough
   if (
-    hostname === ROOT_WWW ||
+    (root && hostname === "www." + root) ||
     hostname === "localhost" ||
     hostname.endsWith(".localhost") ||
     hostname.endsWith(".lvh.me")
@@ -25,8 +36,8 @@ export function middleware(request: NextRequest) {
   }
 
   // 3) client subdomain: <slug>.<root> → rewrite to /sites/<slug>
-  if (hostname.endsWith("." + ROOT)) {
-    const sub = hostname.slice(0, -(ROOT.length + 1));
+  if (root && hostname.endsWith("." + root)) {
+    const sub = hostname.slice(0, -(root.length + 1));
     if (!sub || sub.includes(".") || RESERVED.has(sub)) {
       return NextResponse.next();
     }

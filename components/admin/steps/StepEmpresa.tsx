@@ -1,13 +1,39 @@
 "use client";
 
+import { useState } from "react";
 import type { Site } from "@/lib/types";
 import { slugify, isValidSlug } from "@/lib/slugify";
 import { Field } from "./Field";
+
+const MAX_BYTES = 4 * 1024 * 1024;
 
 export function StepEmpresa({ site, set }: { site: Site; set: (p: string, v: unknown) => void }) {
   const c = site.company;
   const root = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "smdigital.com").toLowerCase();
   const touched = (site as unknown as { slugTouched?: boolean }).slugTouched === true;
+  const [upLogo, setUpLogo] = useState(false);
+  const [upCover, setUpCover] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function upload(file: File, field: "logoUrl" | "coverUrl") {
+    setErr(null);
+    if (file.size > MAX_BYTES) { setErr("Arquivo maior que 4 MB."); return; }
+    const setter = field === "logoUrl" ? setUpLogo : setUpCover;
+    setter(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setErr(j.error ?? "Falha no upload");
+      } else {
+        const { url } = await res.json();
+        set(`company.${field}`, url);
+      }
+    } catch { setErr("Falha no upload"); }
+    finally { setter(false); }
+  }
 
   return (
     <div>
@@ -60,13 +86,20 @@ export function StepEmpresa({ site, set }: { site: Site; set: (p: string, v: unk
       </Field>
 
       <div className="grid grid-cols-2 gap-3">
-        <Field label="URL do logo">
-          <input className="input-base" value={c.logoUrl} onChange={(e) => set("company.logoUrl", e.target.value)} placeholder="https://..." />
+        <Field label="Logo da empresa">
+          <input className="input-base mb-2" value={c.logoUrl} onChange={(e) => set("company.logoUrl", e.target.value)} placeholder="https://... ou faça upload" />
+          <input type="file" accept="image/*" disabled={upLogo} onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f, "logoUrl"); e.currentTarget.value=""; }} className="text-[13px]" />
+          {upLogo && <span className="text-[12px] text-muted">Enviando...</span>}
+          {c.logoUrl && <img src={c.logoUrl} alt="logo preview" className="mt-2 w-16 h-16 object-cover rounded-lg border border-line" />}
         </Field>
-        <Field label="URL da foto de capa">
-          <input className="input-base" value={c.coverUrl} onChange={(e) => set("company.coverUrl", e.target.value)} placeholder="https://..." />
+        <Field label="Foto de capa">
+          <input className="input-base mb-2" value={c.coverUrl} onChange={(e) => set("company.coverUrl", e.target.value)} placeholder="https://... ou faça upload" />
+          <input type="file" accept="image/*" disabled={upCover} onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f, "coverUrl"); e.currentTarget.value=""; }} className="text-[13px]" />
+          {upCover && <span className="text-[12px] text-muted">Enviando...</span>}
+          {c.coverUrl && <img src={c.coverUrl} alt="capa preview" className="mt-2 w-full h-[80px] object-cover rounded-lg border border-line" />}
         </Field>
       </div>
+      {err && <p className="text-danger text-[12.5px] mb-2">{err}</p>}
 
       <div className="grid grid-cols-2 gap-3">
         <Field label="Telefone">

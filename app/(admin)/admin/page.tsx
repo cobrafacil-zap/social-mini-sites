@@ -83,17 +83,18 @@ export default async function AdminDashboardPage() {
                   isLast ? "" : "border-b border-[#EFEEE9]"
                 }`}
               >
-                <div className="flex-1 min-w-0">
-                  <p className="text-[14px] font-semibold text-ink truncate">{name}</p>
+                <Link href={`/admin/client/${s.id}`} className="flex-1 min-w-0 no-underline">
+                  <p className="text-[14px] font-semibold text-ink truncate hover:text-primary">{name}</p>
                   <p className="text-[12.5px] text-[#8B8B85]">
                     {s.slug}.{root}
                   </p>
-                </div>
+                </Link>
                 <StatusBadge status={s.status} />
                 <div className="text-[12.5px] text-muted w-[90px] text-right">
                   {viewsBySite[s.id] ?? 0} views
                 </div>
                 <div className="flex gap-1.5">
+                  <IconLink href={`/admin/client/${s.id}`} title="Ver cliente"><Eye size={14} /></IconLink>
                   <IconLink href={`/admin/edit/${s.id}`} title="Editar"><Pencil size={14} /></IconLink>
                   <IconLink href={`/admin/stats/${s.id}`} title="Estatísticas"><BarChart3 size={14} /></IconLink>
                   {s.status === "published" && (

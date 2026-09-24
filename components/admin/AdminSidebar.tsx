@@ -39,7 +39,7 @@ export function AdminSidebar({ clients }: { clients: Client[] }) {
                 return (
                   <Link
                     key={c.id}
-                    href={`/admin/edit/${c.id}`}
+                    href={`/admin/client/${c.id}`}
                     className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] no-underline truncate ${active ? "bg-[#EAF1EE] text-primary font-medium" : "text-[#3A3D38] hover:bg-[#FAFAF7]"}`}
                     title={c.name}
                   >

@@ -60,6 +60,23 @@ export function SignupForm({ initialError }: { initialError: string | null }) {
         />
       </Field>
 
+      <Field label="CPF" hint="Será usado para recuperar a senha.">
+        <input
+          name="cpf"
+          type="text"
+          required
+          inputMode="numeric"
+          maxLength={14}
+          className="input-base"
+          placeholder="000.000.000-00"
+          onChange={(e) => {
+            const d = e.target.value.replace(/\D/g, "").slice(0, 11);
+            const f = d.replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+            e.target.value = f;
+          }}
+        />
+      </Field>
+
       <Field label="Confirmar senha">
         <input
           name="confirmPassword"

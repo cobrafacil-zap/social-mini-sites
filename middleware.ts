@@ -45,6 +45,7 @@ export function middleware(request: NextRequest) {
       p.startsWith("/admin") ||
       p.startsWith("/login") ||
       p.startsWith("/signup") ||
+      p.startsWith("/forgot-password") ||
       p.startsWith("/auth/") ||
       p === "/favicon.ico" ||
       p.match(/\.(png|jpg|jpeg|gif|svg|webp|ico)$/)

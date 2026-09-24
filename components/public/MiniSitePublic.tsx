@@ -379,9 +379,9 @@ export function MiniSitePublic({ site, interactive, onEvent }: Props) {
         .ms-cover { position:relative; height:190px; overflow:hidden; }
         .ms-cover-img, .ms-cover-fallback { width:100%; height:100%; object-fit:cover; }
         .ms-cover-overlay { position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.35) 100%); }
-        .ms-hero { padding:0 20px; margin-top:-44px; position:relative; }
-        .ms-logo { width:88px; height:88px; border-radius:22px; background:#fff; overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,0.15); display:flex; align-items:center; justify-content:center; }
-        .ms-title { font-family:'Fraunces', serif; font-size:26px; font-weight:600; margin-top:14px; line-height:1.15; }
+        .ms-hero { padding:0 20px; margin-top:-44px; position:relative; z-index:2; }
+        .ms-logo { width:88px; height:88px; border-radius:22px; background:#fff; overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,0.15); display:flex; align-items:center; justify-content:center; position:relative; z-index:3; }
+        .ms-title { font-family:'Fraunces', serif; font-size:26px; font-weight:600; margin-top:14px; line-height:1.1; word-break:break-word; overflow-wrap:anywhere; position:relative; z-index:2; }
         .ms-badges { display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap; }
         .ms-badge-cat { font-size:12.5px; padding:3px 10px; border-radius:999px; font-weight:500; }
         .ms-badge-open { font-size:12.5px; display:flex; align-items:center; gap:4px; font-weight:500; }
@@ -437,9 +437,11 @@ export function MiniSitePublic({ site, interactive, onEvent }: Props) {
           .ms-outer { padding:32px 24px; }
           .ms-shell { max-width:1100px; border-radius:20px; }
           .ms-cover { height:360px; border-radius:20px 20px 0 0; }
-          .ms-hero { padding:0 36px; display:grid; grid-template-columns:1fr 340px; gap:24px; align-items:end; }
+          .ms-hero { padding:0 36px; display:block; }
           .ms-hero .ms-logo { width:96px; height:96px; border-radius:24px; }
-          .ms-title { font-size:32px; }
+          .ms-title { font-size:34px; line-height:1.1; word-break:break-word; overflow-wrap:anywhere; }
+          .ms-hero .ms-cta-main { max-width:560px; }
+          .ms-hero .ms-quick { flex-wrap:wrap; overflow:visible; }
           .ms-main-grid { display:grid; grid-template-columns:1.55fr 0.85fr; gap:0 28px; padding:0 36px; align-items:start; }
           .ms-col-right { position:sticky; top:16px; }
           .ms-section { padding-left:0; padding-right:0; }

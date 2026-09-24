@@ -143,13 +143,46 @@ export function StepEmpresa({ site, set }: { site: Site; set: (p: string, v: unk
           {upCover && <span className="text-[12px] text-muted">Enviando...</span>}
           {c.coverUrl && (
             <>
-              <img
-                src={c.coverUrl}
-                alt="capa preview"
-                className="mt-2 w-full h-[80px] object-cover rounded-lg border border-line"
-                style={{ objectPosition: c.coverPosition || "50% 50%" }}
-              />
-              <label className="block text-[12px] text-muted mt-2">Ajustar enquadramento (qual parte da foto aparece):</label>
+              <div
+                className="mt-2 w-full h-[160px] rounded-lg border border-line overflow-hidden relative select-none"
+                style={{ cursor: "grab", touchAction: "none" }}
+                onPointerDown={(e) => {
+                  const el = e.currentTarget;
+                  el.setPointerCapture(e.pointerId);
+                  const rect = el.getBoundingClientRect();
+                  const startY = e.clientY;
+                  const parts = (c.coverPosition || "50% 50%").split(" ");
+                  const startPos = parseInt(parts[1] || "50", 10);
+                  const onMove = (ev: PointerEvent) => {
+                    const delta = ev.clientY - startY;
+                    // sensibilidade: arrastar 160px = 100%
+                    const pctDelta = (delta / rect.height) * 100;
+                    let next = startPos + pctDelta;
+                    next = Math.max(0, Math.min(100, Math.round(next)));
+                    set("company.coverPosition", `50% ${next}%`);
+                  };
+                  const onUp = (ev: PointerEvent) => {
+                    el.releasePointerCapture(ev.pointerId);
+                    window.removeEventListener("pointermove", onMove);
+                    window.removeEventListener("pointerup", onUp);
+                  };
+                  window.addEventListener("pointermove", onMove);
+                  window.addEventListener("pointerup", onUp);
+                }}
+                title="Arraste para cima/baixo para ajustar"
+              >
+                <img
+                  src={c.coverUrl}
+                  alt="capa preview"
+                  draggable={false}
+                  className="w-full h-full object-cover pointer-events-none"
+                  style={{ objectPosition: c.coverPosition || "50% 50%" }}
+                />
+                <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2 bg-black/60 text-white text-[11px] px-2 py-1 rounded-full pointer-events-none">
+                  ↕ Arraste para ajustar
+                </span>
+              </div>
+              <label className="block text-[12px] text-muted mt-2">Ajuste fino:</label>
               <input
                 type="range"
                 min={0}

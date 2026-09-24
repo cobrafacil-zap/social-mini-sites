@@ -19,29 +19,34 @@ export function StepGaleria({ site, set }: { site: Site; set: (p: string, v: unk
     setUrl("");
   }
 
-  async function uploadFile(file: File) {
-    setErr(null);
-    if (file.size > MAX_BYTES) {
-      setErr("Arquivo maior que 4 MB.");
-      return;
-    }
+  async function uploadFiles(files: FileList | File[]) {
+    const arr = Array.from(files);
+    if (arr.length === 0) return;
+    const tooLarge = arr.filter((f) => f.size > MAX_BYTES);
+    if (tooLarge.length) { setErr(`${tooLarge.length} arquivo(s) maior(es) que 4 MB foram ignorados.`); }
+    const valid = arr.filter((f) => f.size <= MAX_BYTES);
+    if (valid.length === 0) return;
+    if (!tooLarge.length) setErr(null);
     setUploading(true);
-    try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await fetch("/api/upload", { method: "POST", body: fd });
-      if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
-        setErr(j.error ?? "Falha no upload");
-      } else {
-        const { url: publicUrl } = await res.json();
-        set("gallery", [...site.gallery, { id: `img_${nanoid(6)}`, url: publicUrl }]);
+    const newGallery = [...site.gallery];
+    for (const file of valid) {
+      try {
+        const fd = new FormData();
+        fd.append("file", file);
+        const res = await fetch("/api/upload", { method: "POST", body: fd });
+        if (!res.ok) {
+          const j = await res.json().catch(() => ({}));
+          setErr(j.error ?? `Falha no upload de ${file.name}`);
+        } else {
+          const { url: publicUrl } = await res.json();
+          newGallery.push({ id: `img_${nanoid(6)}`, url: publicUrl });
+        }
+      } catch {
+        setErr(`Falha no upload de ${file.name}`);
       }
-    } catch (e) {
-      setErr("Falha no upload");
-    } finally {
-      setUploading(false);
     }
+    if (newGallery.length !== site.gallery.length) set("gallery", newGallery);
+    setUploading(false);
   }
 
   function remove(id: string) {
@@ -71,17 +76,19 @@ export function StepGaleria({ site, set }: { site: Site; set: (p: string, v: unk
         </div>
       </Field>
 
-      <Field label="Enviar do computador">
+      <Field label="Enviar do computador (pode selecionar várias)">
         <input
           type="file"
           accept="image/*"
+          multiple
           disabled={uploading}
           onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) uploadFile(f);
+            const files = e.target.files;
+            if (files && files.length) uploadFiles(files);
             e.currentTarget.value = "";
           }}
         />
+        {uploading && <span className="text-[12px] text-muted">Enviando {`...`}</span>}
       </Field>
 
       {err && <p className="text-danger text-[12.5px] mb-2">{err}</p>}

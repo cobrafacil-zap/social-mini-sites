@@ -27,7 +27,9 @@ export function AdminHeader({
     };
   }, [open]);
 
-  useEffect(() => setOpen(false), [pathname]);
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
 
   const initials = initialsOf(email);
 

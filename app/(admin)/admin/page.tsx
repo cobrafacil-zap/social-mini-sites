@@ -228,7 +228,11 @@ function Metric({
       <p className="text-[26px] font-semibold leading-none tracking-[-0.03em] tabular-nums text-ink">
         {String(value).padStart(2, "0")}
       </p>
-      {sub && <p className="text-[11px] leading-tight text-muted">{sub}</p>}
+      {sub ? (
+        <p className="text-[11px] leading-tight text-muted">{sub}</p>
+      ) : (
+        <span aria-hidden="true" className="block h-[14px]" />
+      )}
     </div>
   );
 }

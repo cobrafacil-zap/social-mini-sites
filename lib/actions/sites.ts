@@ -106,6 +106,62 @@ export async function updateSite(id: string, patch: Partial<Site>): Promise<{ er
   return {};
 }
 
+export async function setSiteStatus(
+  id: string,
+  status: "draft" | "published" | "disabled",
+): Promise<{ error?: string }> {
+  const supabase = await requireAdmin();
+  const { error } = await supabase.from("sites").update({ status } as never).eq("id", id);
+  if (error) return { error: error.message };
+  revalidatePath("/admin");
+  revalidatePath(`/admin/client/${id}`);
+  return {};
+}
+
+export async function duplicateSite(id: string): Promise<{ error?: string; id?: string }> {
+  const supabase = await requireAdmin();
+  const { data, error } = await supabase.from("sites").select("*").eq("id", id).single();
+  if (error || !data) return { error: "Mini site não encontrado." };
+
+  const src = data as unknown as SiteRow;
+  const newId = crypto.randomUUID();
+  const srcCompany = (src.company ?? {}) as Site["company"];
+
+  const base = `${src.slug}-copia`.slice(0, 58).replace(/-+$/, "");
+  const { data: clash } = await supabase.from("sites").select("id").eq("slug", base).maybeSingle();
+  const slug = clash ? `${base}-${newId.slice(0, 4)}` : base;
+
+  const buttons = Array.isArray(src.buttons)
+    ? (src.buttons as Site["buttons"]).map((b, i) => ({ ...b, id: `btn_${newId.slice(0, 4)}_${i}` }))
+    : [];
+  const gallery = Array.isArray(src.gallery)
+    ? (src.gallery as Site["gallery"]).map((g, i) => ({ ...g, id: `img_${newId.slice(0, 4)}_${i}` }))
+    : [];
+
+  const company = { ...srcCompany, name: `${srcCompany.name || src.slug} (cópia)` };
+
+  const { error: insErr } = await supabase.from("sites").insert({
+    id: newId,
+    slug,
+    template: src.template,
+    status: "draft",
+    company,
+    location: src.location,
+    hours: src.hours,
+    gallery,
+    buttons,
+    customization: src.customization,
+  } satisfies Partial<SiteRow> as never);
+
+  if (insErr) {
+    if (insErr.code === "23505") return { error: "Já existe um site com esse slug." };
+    return { error: insErr.message };
+  }
+
+  revalidatePath("/admin");
+  return { id: newId };
+}
+
 export async function deleteSite(id: string): Promise<void> {
   const supabase = await requireAdmin();
   // best-effort: remove objetos do storage antes de deletar o site (cascade)

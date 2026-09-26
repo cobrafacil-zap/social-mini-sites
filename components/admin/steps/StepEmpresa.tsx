@@ -5,6 +5,7 @@ import { Building2, CircleAlert } from "lucide-react";
 import type { Site } from "@/lib/types";
 import { slugify, isValidSlug } from "@/lib/slugify";
 import { Field, StepHeader, Section } from "./Field";
+import { AiAssistButton } from "@/components/admin/AiAssistButton";
 
 const MAX_BYTES = 4 * 1024 * 1024;
 
@@ -121,6 +122,10 @@ export function StepEmpresa({ site, set }: { site: Site; set: (p: string, v: unk
             onChange={(e) => set("company.slogan", e.target.value)}
             placeholder="Sabor autêntico da Itália"
           />
+          <AiAssistButton
+            label="Gerar slogan"
+            className="mt-1.5"
+          />
         </Field>
       </div>
 
@@ -132,6 +137,7 @@ export function StepEmpresa({ site, set }: { site: Site; set: (p: string, v: unk
           onChange={(e) => set("company.shortDesc", e.target.value)}
           placeholder="Pizzas, porções e sabores especiais para compartilhar bons momentos."
         />
+        <AiAssistButton label="Criar descrição" className="mt-1.5" />
       </Field>
 
       <Field label="História da empresa" hint="Bloco 'Sobre nós' do mini site.">
@@ -141,6 +147,7 @@ export function StepEmpresa({ site, set }: { site: Site; set: (p: string, v: unk
           value={c.history}
           onChange={(e) => set("company.history", e.target.value)}
         />
+        <AiAssistButton label="Melhorar com IA" className="mt-1.5" />
       </Field>
 
       <Section title="Imagens">

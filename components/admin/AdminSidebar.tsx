@@ -5,10 +5,31 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutGrid, Users, Plus, Search, ChevronDown, X, Store,
+  BarChart3, Contact, Settings,
 } from "lucide-react";
 import { Mark } from "./AdminHeader";
 
 type Client = { id: string; name: string; slug: string; status: string };
+
+function SoonItem({
+  icon: Icon, label, hint,
+}: { icon: React.ComponentType<{ size?: number; className?: string }>; label: string; hint: string }) {
+  return (
+    <span className="tip-wrap flex">
+      <span
+        aria-disabled="true"
+        className="flex cursor-not-allowed items-center gap-2.5 rounded-[10px] px-3 py-2 text-[13px] text-ink-muted opacity-55"
+      >
+        <Icon size={15} className="shrink-0" />
+        {label}
+        <span className="ml-auto rounded-md bg-paper-alt px-1.5 py-px text-[10px] font-medium uppercase tracking-wide text-muted">
+          Breve
+        </span>
+      </span>
+      <span className="tip" role="tooltip">{hint}</span>
+    </span>
+  );
+}
 
 export function AdminSidebar({
   clients, mobileOpen, onMobileOpenChange,
@@ -86,21 +107,24 @@ export function AdminSidebar({
 
       {/* Clientes */}
       <div className="mt-6 flex min-h-0 flex-1 flex-col px-2.5">
-        <div className="flex items-center gap-1 px-1.5">
+        <p className="px-1.5 pb-0.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-muted">
+          Clientes
+        </p>
+        <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
-            className="flex flex-1 items-center gap-1.5 rounded-md px-1 py-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-muted transition duration-150 hover:text-ink"
+            className="flex flex-1 items-center gap-1.5 rounded-md px-1.5 py-1 text-[12.5px] font-medium text-ink-soft transition duration-150 hover:text-ink"
           >
-            <Users size={12} />
-            Clientes
-            <span className="ml-0.5 rounded-full bg-paper-alt px-1.5 py-px text-[10px] font-semibold tabular-nums text-ink-muted">
+            <Users size={12} className="shrink-0 text-muted" />
+            Todos os clientes
+            <span className="rounded-full bg-paper-alt px-1.5 py-px text-[10px] font-semibold tabular-nums text-ink-muted">
               {clients.length}
             </span>
             <ChevronDown
               size={12}
-              className={`ml-auto transition duration-200 ${open ? "rotate-180" : ""}`}
+              className={`ml-auto text-muted transition duration-200 ${open ? "rotate-180" : ""}`}
             />
           </button>
           <span className="tip-wrap">
@@ -174,6 +198,35 @@ export function AdminSidebar({
             </div>
           </div>
         )}
+      </div>
+
+      {/* Gerenciamento — estrutura pronta; itens sem destino ficam desabilitados */}
+      <div className="mt-6 px-2.5">
+        <p className="px-1.5 pb-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-muted">
+          Gerenciamento
+        </p>
+        <ul className="space-y-0.5">
+          <li>
+            <Link
+              href="/admin"
+              onClick={closeMobile}
+              className={`flex items-center gap-2.5 rounded-[10px] px-3 py-2 text-[13px] no-underline transition duration-150 ${
+                isDashboard
+                  ? "bg-primary-50 font-medium text-primary"
+                  : "text-ink-soft hover:bg-paper-alt hover:text-ink"
+              }`}
+            >
+              <BarChart3 size={15} className="shrink-0 opacity-70" />
+              Analytics
+            </Link>
+          </li>
+          <li>
+            <SoonItem icon={Contact} label="Leads" hint="Baseado nos cliques de contato" />
+          </li>
+          <li>
+            <SoonItem icon={Settings} label="Configurações" hint="Em breve" />
+          </li>
+        </ul>
       </div>
 
       {/* Novo cliente */}

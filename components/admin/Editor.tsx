@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft, ChevronLeft, ChevronRight, Check, Copy, QrCode, ExternalLink,
@@ -10,8 +10,10 @@ import {
 import type { Site } from "@/lib/types";
 import { updateSite } from "@/lib/actions/sites";
 import { EditorStep } from "./EditorStep";
+import { StepHealthList } from "./StepHealthList";
 import { PhoneFrame } from "@/components/ui/PhoneFrame";
 import { MiniSitePublic } from "@/components/public/MiniSitePublic";
+import { siteHealth } from "@/lib/siteHealth";
 
 const STEPS = [
   { key: "empresa", label: "Empresa", icon: Building2 },
@@ -76,6 +78,7 @@ export function Editor({ initial }: { initial: Site }) {
   const current: { key: StepKey; label: string; icon: LucideIcon } = STEPS[step]!;
 
   const progress = ((step + 1) / STEPS.length) * 100;
+  const health = useMemo(() => siteHealth(site), [site]);
 
   return (
     <div className="min-h-screen bg-paper">
@@ -145,6 +148,15 @@ export function Editor({ initial }: { initial: Site }) {
               );
             })}
           </nav>
+
+          <StepHealthList
+            health={health}
+            currentKey={current.key}
+            onPick={(label) => {
+              const i = STEPS.findIndex((s) => s.label === label);
+              if (i >= 0) setStep(i);
+            }}
+          />
 
           <div className="mt-4 rounded-xl border border-line bg-paper p-3">
             <p className="text-[11.5px] font-medium text-ink-soft">Como publicar</p>

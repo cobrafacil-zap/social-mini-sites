@@ -224,6 +224,7 @@ function ImageField({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder="https://... ou envie um arquivo"
+            aria-label={`${label} (URL)`}
           />
           <label className="flex cursor-pointer items-center justify-center gap-1.5 rounded-[9px] border border-dashed border-line-strong bg-paper px-3 py-2 text-[12.5px] font-medium text-ink-soft transition duration-150 hover:border-primary/50 hover:bg-primary-50 hover:text-primary">
             Enviar do computador
@@ -231,6 +232,7 @@ function ImageField({
               type="file"
               accept="image/*"
               className="sr-only"
+              aria-label={`Enviar ${label.toLowerCase()} do computador`}
               onChange={(e) => {
                 const f = e.target.files?.[0];
                 if (f) onUpload(f);

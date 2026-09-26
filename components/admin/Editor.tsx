@@ -73,7 +73,7 @@ export function Editor({ initial }: { initial: Site }) {
   const root = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "smdigtal.com").toLowerCase();
   const publicUrl = `https://${site.slug}.${root}`;
   const isLast = step === STEPS.length - 1;
-  const current = STEPS[step]!;
+  const current: { key: StepKey; label: string; icon: React.ComponentType<{ size?: number }> } = STEPS[step]!;
 
   const progress = ((step + 1) / STEPS.length) * 100;
 

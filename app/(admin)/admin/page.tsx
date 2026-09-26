@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import {
   Plus, Eye, Pencil, Trash2, BarChart3, ExternalLink, MessageCircle,
-  CheckCircle2, Layers, TrendingUp, MoreHorizontal,
+  CheckCircle2, Layers, TrendingUp, MoreHorizontal, type LucideIcon,
 } from "lucide-react";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { IconLink } from "@/components/ui/IconButton";
@@ -208,7 +208,7 @@ function Metric({
 }: {
   label: string;
   value: number;
-  Icon: React.ComponentType<{ size?: number }>;
+  Icon: LucideIcon;
   sub?: string;
   tone?: "neutral" | "ok" | "warn";
 }) {

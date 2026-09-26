@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Eye, MessageCircle, Instagram, MapPin, Phone, MousePointerClick, Info } from "lucide-react";
+import { ArrowLeft, Eye, MessageCircle, Instagram, MapPin, Phone, MousePointerClick, Info, type LucideIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { rowToSite } from "@/lib/mappers";
@@ -8,7 +8,7 @@ import type { SiteRow, EventRow } from "@/lib/supabase/database.types";
 
 export const dynamic = "force-dynamic";
 
-const METRICS: { key: EventType; label: string; Icon: React.ComponentType<{ size?: number }> }[] = [
+const METRICS: { key: EventType; label: string; Icon: LucideIcon }[] = [
   { key: "view", label: "Visualizações", Icon: Eye },
   { key: "whatsapp", label: "Cliques no WhatsApp", Icon: MessageCircle },
   { key: "instagram", label: "Cliques no Instagram", Icon: Instagram },

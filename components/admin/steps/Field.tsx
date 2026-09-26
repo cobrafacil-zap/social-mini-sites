@@ -1,5 +1,7 @@
 "use client";
 
+import type { LucideIcon } from "lucide-react";
+
 export function Field({
   label, hint, children, className = "",
 }: { label: string; hint?: string; children: React.ReactNode; className?: string }) {
@@ -14,7 +16,7 @@ export function Field({
 
 export function StepHeader({
   title, description, icon: Icon,
-}: { title: string; description: string; icon?: React.ComponentType<{ size?: number }> }) {
+}: { title: string; description: string; icon?: LucideIcon }) {
   return (
     <header className="mb-6">
       <div className="flex items-center gap-2.5">

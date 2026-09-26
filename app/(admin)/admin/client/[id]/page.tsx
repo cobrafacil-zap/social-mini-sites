@@ -6,6 +6,7 @@ import { fullAddress } from "@/lib/links";
 import {
   Pencil, Trash2, ExternalLink, BarChart3, Eye, MessageCircle,
   Instagram, MapPin, Phone, MousePointerClick, ArrowLeft, Globe, Mail, Store,
+  type LucideIcon,
 } from "lucide-react";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import type { EventType } from "@/lib/types";
@@ -13,7 +14,7 @@ import type { SiteRow, EventRow } from "@/lib/supabase/database.types";
 
 export const dynamic = "force-dynamic";
 
-const METRICS: { key: EventType; label: string; Icon: React.ComponentType<{ size?: number }> }[] = [
+const METRICS: { key: EventType; label: string; Icon: LucideIcon }[] = [
   { key: "view", label: "Visualizações", Icon: Eye },
   { key: "whatsapp", label: "WhatsApp", Icon: MessageCircle },
   { key: "instagram", label: "Instagram", Icon: Instagram },
@@ -243,7 +244,7 @@ function Info({ title, children }: { title: string; children: React.ReactNode })
 function Row({
   icon: Icon, label, value, href,
 }: {
-  icon: React.ComponentType<{ size?: number }>;
+  icon: LucideIcon;
   label: string;
   value?: string;
   href?: string;

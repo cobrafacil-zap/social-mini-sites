@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   ArrowLeft, ChevronLeft, ChevronRight, Check, Copy, QrCode, ExternalLink,
   Building2, MapPin, Clock, Images, MousePointerClick, MessageCircle, Palette,
-  CheckCircle2, Loader2, CircleAlert, Smartphone,
+  CheckCircle2, Loader2, CircleAlert, Smartphone, type LucideIcon,
 } from "lucide-react";
 import type { Site } from "@/lib/types";
 import { updateSite } from "@/lib/actions/sites";
@@ -73,7 +73,7 @@ export function Editor({ initial }: { initial: Site }) {
   const root = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "smdigtal.com").toLowerCase();
   const publicUrl = `https://${site.slug}.${root}`;
   const isLast = step === STEPS.length - 1;
-  const current: { key: StepKey; label: string; icon: React.ComponentType<{ size?: number }> } = STEPS[step]!;
+  const current: { key: StepKey; label: string; icon: LucideIcon } = STEPS[step]!;
 
   const progress = ((step + 1) / STEPS.length) * 100;
 
@@ -247,15 +247,14 @@ export function Editor({ initial }: { initial: Site }) {
 
 function patchSite(site: Site, path: string, value: unknown): Site {
   const keys = path.split(".");
-  const next = structuredClone(site) as Record<string, unknown>;
-  let cursor: Record<string, unknown> = next;
+  const next = structuredClone(site) as any;
+  let cursor: any = next;
   while (keys.length > 1) {
-    const k = keys.shift()!;
-    cursor = cursor[k] as Record<string, unknown>;
+    cursor = cursor[keys.shift()!];
   }
   cursor[keys[0]!] = value;
-  (next as { updatedAt: number }).updatedAt = Date.now();
-  return next as unknown as Site;
+  next.updatedAt = Date.now();
+  return next as Site;
 }
 
 function SaveState({ saved, error }: { saved: boolean; error: string | null }) {

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ConfirmDeleteForm } from "@/components/admin/ConfirmDeleteForm";
 import type { SiteRow } from "@/lib/supabase/database.types";

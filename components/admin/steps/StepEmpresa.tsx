@@ -163,6 +163,7 @@ export function StepEmpresa({ site, set }: { site: Site; set: (p: string, v: unk
             label="Foto de capa"
             value={c.coverUrl}
             coverPosition={c.coverPosition}
+            preview={<CoverPreview url={c.coverUrl} position={c.coverPosition} />}
             onChange={(v) => set("company.coverUrl", v)}
             onUpload={(f) => void upload(f, "coverUrl")}
             onCoverPosition={(v) => set("company.coverPosition", v)}
@@ -330,4 +331,19 @@ function LogoPreview({ url }: { url: string }) {
   }
   // eslint-disable-next-line @next/next/no-img-element
   return <img src={url} alt="Pré-visualização da logo" className="h-full w-full object-contain p-1" />;
+}
+
+function CoverPreview({ url, position }: { url: string; position?: string }) {
+  if (!url) {
+    return <span className="text-[12px] text-muted">Sem capa</span>;
+  }
+  // eslint-disable-next-line @next/next/no-img-element
+  return (
+    <img
+      src={url}
+      alt="Pré-visualização da capa"
+      className="h-full w-full object-cover"
+      style={{ objectPosition: position || "50% 50%" }}
+    />
+  );
 }

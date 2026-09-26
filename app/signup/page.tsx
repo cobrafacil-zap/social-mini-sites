@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { SignupForm } from "./SignupForm";
+import { AuthShell } from "@/components/auth/AuthShell";
 
 type Props = { searchParams: Promise<{ error?: string }> };
 
@@ -13,8 +14,8 @@ export default async function SignupPage({ searchParams }: Props) {
   const initialError = params.error ? "Não foi possível criar a conta." : null;
 
   return (
-    <div className="min-h-screen bg-paper flex items-center justify-center">
+    <AuthShell>
       <SignupForm initialError={initialError} />
-    </div>
+    </AuthShell>
   );
 }

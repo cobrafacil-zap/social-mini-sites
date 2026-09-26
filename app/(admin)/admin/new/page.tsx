@@ -4,9 +4,9 @@ import { TemplatePicker } from "@/components/admin/TemplatePicker";
 
 export default function NewSitePage() {
   return (
-    <div className="max-w-[1080px] mx-auto px-6 pt-7 pb-16">
-      <Link href="/admin" className="inline-flex items-center gap-1.5 text-[13.5px] text-neutral-700 no-underline mb-5">
-        <ArrowLeft size={15} /> Voltar
+    <div className="mx-auto w-full max-w-[1120px] px-4 py-6 sm:px-6 sm:py-8">
+      <Link href="/admin" className="btn-ghost btn-sm -ml-2 mb-4">
+        <ArrowLeft size={14} /> Voltar
       </Link>
       <TemplatePicker />
     </div>

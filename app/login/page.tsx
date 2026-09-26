@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { LoginForm } from "./LoginForm";
+import { AuthShell } from "@/components/auth/AuthShell";
 
 type Props = { searchParams: Promise<{ error?: string; pending?: string }> };
 
@@ -17,8 +18,8 @@ export default async function LoginPage({ searchParams }: Props) {
     : null;
 
   return (
-    <div className="min-h-screen bg-paper flex items-center justify-center">
+    <AuthShell>
       <LoginForm initialError={initialMessage} />
-    </div>
+    </AuthShell>
   );
 }

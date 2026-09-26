@@ -13,7 +13,13 @@ type StepKey = "empresa" | "local" | "horario" | "galeria" | "botoes" | "whatsap
 
 export function EditorStep({
   step, site, set, onSave, saved,
-}: { step: StepKey; site: Site; set: (path: string, value: unknown) => void; onSave?: () => Promise<unknown>; saved?: boolean }) {
+}: {
+  step: StepKey;
+  site: Site;
+  set: (path: string, value: unknown) => void;
+  onSave?: () => Promise<unknown>;
+  saved?: boolean;
+}) {
   switch (step) {
     case "empresa": return <StepEmpresa site={site} set={set} />;
     case "local":   return <StepLocal site={site} set={set} />;

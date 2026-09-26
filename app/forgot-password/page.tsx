@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { ForgotPasswordForm } from "./ForgotPasswordForm";
+import { AuthShell } from "@/components/auth/AuthShell";
 
 export default async function ForgotPasswordPage() {
   const supabase = await createClient();
@@ -8,8 +9,8 @@ export default async function ForgotPasswordPage() {
   if (user) redirect("/admin");
 
   return (
-    <div className="min-h-screen bg-paper flex items-center justify-center">
+    <AuthShell>
       <ForgotPasswordForm />
-    </div>
+    </AuthShell>
   );
 }

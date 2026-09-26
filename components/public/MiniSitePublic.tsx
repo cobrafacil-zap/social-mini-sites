@@ -102,7 +102,6 @@ export function MiniSitePublic({ site, interactive, onEvent }: Props) {
           {site.company.slogan && (
             <p className="ms-slogan">{site.company.slogan}</p>
           )}
-
           {/* CTA PRINCIPAL */}
           <button
             type="button"
@@ -378,84 +377,91 @@ export function MiniSitePublic({ site, interactive, onEvent }: Props) {
         .ms-shell { max-width:460px; margin:0 auto; min-height:100vh; position:relative; box-shadow:0 0 40px rgba(0,0,0,0.08); overflow:hidden; }
         .ms-cover { position:relative; height:190px; overflow:hidden; }
         .ms-cover-img, .ms-cover-fallback { width:100%; height:100%; object-fit:cover; }
-        .ms-cover-overlay { position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.35) 100%); }
+        .ms-cover-overlay { position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0) 45%, rgba(0,0,0,0.32) 100%); }
         .ms-hero { padding:0 20px; margin-top:-44px; position:relative; z-index:2; }
-        .ms-logo { width:88px; height:88px; border-radius:22px; background:#fff; overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,0.15); display:flex; align-items:center; justify-content:center; position:relative; z-index:3; }
-        .ms-title { font-family:'Inter', sans-serif; font-size:26px; font-weight:800; margin-top:14px; line-height:1.1; word-break:break-word; overflow-wrap:anywhere; position:relative; z-index:2; text-transform:uppercase; letter-spacing:0.5px; }
-        .ms-badges { display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap; }
-        .ms-badge-cat { font-size:12.5px; padding:3px 10px; border-radius:999px; font-weight:500; }
-        .ms-badge-open { font-size:12.5px; display:flex; align-items:center; gap:4px; font-weight:500; }
+        .ms-logo { width:88px; height:88px; border-radius:24px; background:#fff; overflow:hidden; box-shadow:0 6px 20px rgba(0,0,0,0.16); display:flex; align-items:center; justify-content:center; position:relative; z-index:3; }
+        .ms-title { font-family:'Inter', sans-serif; font-size:26px; font-weight:800; margin-top:14px; line-height:1.12; word-break:break-word; overflow-wrap:anywhere; position:relative; z-index:2; text-transform:uppercase; letter-spacing:0.4px; }
+        .ms-badges { display:flex; align-items:center; gap:8px; margin-top:8px; flex-wrap:wrap; }
+        .ms-badge-cat { font-size:12px; padding:4px 10px; border-radius:999px; font-weight:600; }
+        .ms-badge-open { font-size:12.5px; display:flex; align-items:center; gap:5px; font-weight:600; }
         .ms-dot { width:6px; height:6px; border-radius:999px; display:inline-block; }
-        .ms-slogan { font-size:14.5px; margin-top:8px; opacity:0.75; font-style:italic; }
-        .ms-cta-main { margin-top:16px; width:100%; color:#fff; border:none; padding:13px 16px; font-size:15px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; background:#1EA956 !important; }
+        .ms-slogan { font-size:14.5px; margin-top:9px; opacity:0.72; line-height:1.5; }
+        .ms-cta-main { margin-top:18px; width:100%; color:#fff; border:none; padding:14px 16px; font-size:15px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; background:#1EA956 !important; box-shadow:0 4px 14px rgba(30,169,86,0.28); transition:transform .15s ease; }
+        .ms-cta-main:active { transform:scale(.99); }
         .ms-quick { display:flex; gap:8px; margin-top:10px; overflow-x:auto; padding-bottom:2px; scrollbar-width:none; }
         .ms-quick::-webkit-scrollbar { display:none; }
-        .ms-quick-btn { flex:0 0 auto; display:flex; align-items:center; gap:6px; background:transparent; padding:8px 13px; font-size:13px; font-weight:500; cursor:pointer; white-space:nowrap; }
+        .ms-quick-btn { flex:0 0 auto; display:flex; align-items:center; gap:6px; background:transparent; padding:9px 13px; font-size:13px; font-weight:500; cursor:pointer; white-space:nowrap; transition:transform .15s ease; }
+        .ms-quick-btn:active { transform:scale(.97); }
         .ms-main-grid { display:block; }
-        .ms-col { }
-        .ms-section { padding:24px 20px 6px; }
+        .ms-section { padding:26px 20px 0; }
         .ms-section.ms-gallery { padding-left:20px; padding-right:0; }
-        .ms-h2 { font-family:'Inter', sans-serif; font-size:16px; font-weight:800; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.8px; }
-        .ms-p { font-size:14px; opacity:0.85; margin-bottom:6px; line-height:1.5; }
-        .ms-p-sm { font-size:13.5px; opacity:0.7; line-height:1.55; }
+        .ms-h2 { font-family:'Inter', sans-serif; font-size:15px; font-weight:800; margin-bottom:11px; text-transform:uppercase; letter-spacing:0.9px; opacity:.92; }
+        .ms-p { font-size:14px; opacity:0.85; margin-bottom:6px; line-height:1.6; }
+        .ms-p-sm { font-size:13.5px; opacity:0.7; line-height:1.65; }
         .ms-gallery-track { display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; padding-right:20px; scrollbar-width:none; }
         .ms-gallery-track::-webkit-scrollbar { display:none; }
-        .ms-gallery-img { width:132px; height:132px; object-fit:cover; border-radius:12px; flex:0 0 auto; cursor:pointer; }
+        .ms-gallery-img { width:130px; height:130px; object-fit:cover; border-radius:14px; flex:0 0 auto; cursor:pointer; transition:transform .15s ease; }
+        .ms-gallery-img:active { transform:scale(.97); }
         .ms-buttons { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
-        .ms-btn { padding:14px 10px; font-size:13px; font-weight:500; display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center; }
-        .ms-address { font-size:13.5px; opacity:0.8; margin-bottom:10px; display:flex; gap:6px; line-height:1.4; }
-        .ms-map { border-radius:12px; overflow:hidden; height:140px; background:#eee; }
-        .ms-map-btn { margin-top:10px; width:100%; background:transparent; padding:10px; font-size:13.5px; font-weight:500; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; }
-        .ms-hours { border-radius:12px; overflow:hidden; }
-        .ms-hours-row { display:flex; justify-content:space-between; padding:9px 13px; font-size:13px; }
+        .ms-btn { padding:15px 10px; font-size:13px; font-weight:500; display:flex; flex-direction:column; align-items:center; gap:7px; cursor:pointer; text-align:center; line-height:1.3; transition:transform .15s ease; }
+        .ms-btn:active { transform:scale(.98); }
+        .ms-address { font-size:13.5px; opacity:0.8; margin-bottom:11px; display:flex; gap:6px; line-height:1.5; }
+        .ms-map { border-radius:14px; overflow:hidden; height:140px; background:#eee; }
+        .ms-map-btn { margin-top:10px; width:100%; background:transparent; padding:10px; font-size:13.5px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; transition:transform .15s ease; }
+        .ms-map-btn:active { transform:scale(.98); }
+        .ms-hours { border-radius:14px; overflow:hidden; }
+        .ms-hours-row { display:flex; justify-content:space-between; padding:10px 13px; font-size:13px; }
         .ms-socials { display:flex; gap:10px; }
-        .ms-social-btn { width:42px; height:42px; border-radius:999px; background:transparent; display:flex; align-items:center; justify-content:center; cursor:pointer; }
-        .ms-cta-box { margin:26px 20px 0; padding:22px; border-radius:16px; text-align:center; }
-        .ms-cta-title { color:#fff; font-family:'Inter', sans-serif; font-size:18px; font-weight:800; margin-bottom:12px; text-transform:uppercase; letter-spacing:0.5px; }
-        .ms-cta-box-btn { width:100%; background:#1EA956 !important; color:#fff !important; border:none; padding:12px; font-size:14.5px; font-weight:800; cursor:pointer; text-transform:uppercase; }
-        .ms-footer { text-align:center; font-size:11.5px; opacity:0.4; padding:18px 20px 24px; }
-        .ms-float { position:fixed; bottom:18px; right:18px; width:54px; height:54px; border-radius:999px; background:#1EA956 !important; border:none; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 18px rgba(0,0,0,0.25); cursor:pointer; z-index:40; }
-        .ms-lightbox { position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:50; display:flex; align-items:center; justify-content:center; }
+        .ms-social-btn { width:44px; height:44px; border-radius:999px; background:transparent; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:transform .15s ease; }
+        .ms-social-btn:active { transform:scale(.94); }
+        .ms-cta-box { margin:28px 20px 0; padding:24px 22px; border-radius:18px; text-align:center; }
+        .ms-cta-title { color:#fff; font-family:'Inter', sans-serif; font-size:17px; font-weight:800; margin-bottom:13px; text-transform:uppercase; letter-spacing:0.5px; line-height:1.3; }
+        .ms-cta-box-btn { width:100%; background:#1EA956 !important; color:#fff !important; border:none; padding:13px; font-size:14.5px; font-weight:700; cursor:pointer; transition:transform .15s ease; }
+        .ms-cta-box-btn:active { transform:scale(.98); }
+        .ms-footer { text-align:center; font-size:11px; opacity:0.38; padding:22px 20px 26px; letter-spacing:.02em; }
+        .ms-float { position:fixed; bottom:18px; right:18px; width:56px; height:56px; border-radius:999px; background:#1EA956 !important; border:none; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 24px rgba(30,169,86,0.4); cursor:pointer; z-index:40; transition:transform .15s ease; }
+        .ms-float:active { transform:scale(.94); }
+        .ms-lightbox { position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:50; display:flex; align-items:center; justify-content:center; }
         .ms-lightbox-close { position:absolute; top:16px; right:16px; color:#fff; background:transparent; border:none; cursor:pointer; }
-        .ms-lightbox-prev { position:absolute; left:10px; color:#fff; background:transparent; border:none; cursor:pointer; }
-        .ms-lightbox-next { position:absolute; right:10px; color:#fff; background:transparent; border:none; cursor:pointer; }
-        .ms-lightbox-img { max-width:88%; max-height:78%; object-fit:contain; border-radius:8px; }
+        .ms-lightbox-prev, .ms-lightbox-next { position:absolute; color:#fff; background:rgba(255,255,255,0.1); border:none; border-radius:999px; width:42px; height:42px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+        .ms-lightbox-prev { left:12px; }
+        .ms-lightbox-next { right:12px; }
+        .ms-lightbox-img { max-width:88%; max-height:78%; object-fit:contain; border-radius:10px; }
 
         /* Tablet */
         @media (min-width: 768px) {
           .ms-shell { max-width:680px; }
           .ms-cover { height:260px; }
           .ms-hero { padding:0 32px; }
-          .ms-section { padding:28px 32px 6px; }
+          .ms-section { padding:28px 32px 0; }
           .ms-section.ms-gallery { padding-left:32px; }
-          .ms-gallery-img { width:160px; height:160px; }
+          .ms-gallery-img { width:158px; height:158px; }
           .ms-buttons { grid-template-columns:1fr 1fr 1fr; }
         }
 
-        /* Desktop */
         @media (min-width: 1024px) {
-          .ms-outer { padding:32px 24px; }
-          .ms-shell { max-width:1100px; border-radius:20px; }
-          .ms-cover { height:360px; border-radius:20px 20px 0 0; }
-          .ms-hero { padding:0 36px; display:block; }
+          .ms-outer { padding:36px 24px; }
+          .ms-shell { max-width:1080px; border-radius:22px; box-shadow:0 1px 2px rgba(0,0,0,0.05), 0 24px 60px -20px rgba(0,0,0,0.22); }
+          .ms-cover { height:340px; border-radius:22px 22px 0 0; }
+          .ms-hero { padding:0 40px; display:block; }
           .ms-hero .ms-logo { width:96px; height:96px; border-radius:24px; }
-          .ms-title { font-size:34px; line-height:1.1; word-break:break-word; overflow-wrap:anywhere; }
-          .ms-hero .ms-cta-main { max-width:560px; }
+          .ms-title { font-size:34px; letter-spacing:0.2px; }
+          .ms-hero .ms-cta-main { max-width:520px; }
           .ms-hero .ms-quick { flex-wrap:wrap; overflow:visible; }
-          .ms-main-grid { display:grid; grid-template-columns:1.55fr 0.85fr; gap:0 28px; padding:0 36px; align-items:start; }
+          .ms-main-grid { display:grid; grid-template-columns:1.55fr 0.85fr; gap:0 32px; padding:0 40px; align-items:start; }
           .ms-col-right { position:sticky; top:16px; }
-          .ms-section { padding-left:0; padding-right:0; }
+          .ms-section { padding-left:0; padding-right:0; padding-top:32px; }
           .ms-section.ms-gallery { padding-left:0; }
           .ms-gallery-track { display:grid; grid-template-columns:repeat(3, 1fr); overflow:visible; padding-right:0; gap:10px; }
-          .ms-gallery-img { width:100%; height:140px; }
+          .ms-gallery-img { width:100%; height:138px; }
           .ms-buttons { grid-template-columns:1fr 1fr; }
           .ms-map { height:200px; }
-          .ms-cta-box { margin-left:0; margin-right:0; }
-          .ms-footer { padding-bottom:32px; }
+          .ms-cta-box { margin-left:0; margin-right:0; margin-top:32px; }
+          .ms-footer { padding-bottom:34px; }
         }
 
         @media (min-width: 1280px) {
-          .ms-gallery-img { height:150px; }
+          .ms-gallery-img { height:148px; }
           .ms-buttons { grid-template-columns:1fr 1fr 1fr; }
         }
       `}</style>

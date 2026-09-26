@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { LayoutDashboard, User } from "lucide-react";
+import { Loader2, UserCheck, CircleAlert, CircleCheck } from "lucide-react";
 import { signIn } from "@/lib/actions/auth";
 import { Field } from "@/components/admin/steps/Field";
 
@@ -28,77 +28,81 @@ export function LoginForm({ initialError }: { initialError: string | null }) {
 
   function useLastEmail() {
     if (!lastEmail) return;
-    const input = document.querySelector('input[name="email"]') as HTMLInputElement | null;
-    if (input) { input.value = lastEmail; input.focus(); }
+    const input = document.querySelector<HTMLInputElement>('input[name="email"]');
+    if (input) {
+      input.value = lastEmail;
+      input.focus();
+    }
   }
 
-  // Mensagens neutras (ex.: "verifique seu email") ganham cor ok; erros ficam em vermelho.
-  const isNeutral = !!error && error.toLowerCase().includes("verifique");
-  const messageClass = isNeutral
-    ? "text-[12.5px] text-ok mb-3"
-    : "text-[12.5px] text-danger mb-3";
+  const neutral = !!error && error.toLowerCase().includes("verifique");
 
   return (
-    <form action={action} className="w-[340px] bg-white border border-line rounded-2xl p-8">
-      <div className="w-[42px] h-[42px] rounded-xl bg-primary flex items-center justify-center mb-[18px]">
-        <LayoutDashboard size={20} color="#fff" />
-      </div>
-      <h1 className="text-[19px] font-semibold text-ink">Social Mini Sites</h1>
-      <p className="text-[13px] text-muted mt-1 mb-5">Painel administrativo</p>
+    <div>
+      <header className="mb-6">
+        <h1 className="text-[19px] font-semibold tracking-[-0.015em] text-ink">Entrar no painel</h1>
+        <p className="mt-1 text-[13px] text-muted">Acesse para gerenciar seus clientes e mini sites.</p>
+      </header>
 
-      <Field label="E-mail">
-        <input
-          name="email"
-          type="email"
-          required
-          autoComplete="email"
-          autoFocus
-          className="input-base"
-          placeholder="voce@empresa.com"
-        />
-      </Field>
+      <form action={action} className="space-y-4">
+        <Field label="E-mail">
+          <input
+            name="email"
+            type="email"
+            required
+            autoComplete="email"
+            autoFocus
+            className="input-base"
+            placeholder="voce@empresa.com"
+          />
+        </Field>
 
-      <Field label="Senha">
-        <input
-          name="password"
-          type="password"
-          required
-          autoComplete="current-password"
-          className="input-base"
-          placeholder="••••••••"
-        />
-      </Field>
+        <Field label="Senha">
+          <input
+            name="password"
+            type="password"
+            required
+            autoComplete="current-password"
+            className="input-base"
+            placeholder="••••••••"
+          />
+        </Field>
 
-      {error && (
-        <p className={messageClass}>{error}</p>
-      )}
+        {error && (
+          <p
+            role="alert"
+            className={`flex items-start gap-1.5 rounded-[10px] border px-3 py-2 text-[12.5px] leading-relaxed ${
+              neutral ? "border-ok/20 bg-ok-50 text-ok" : "border-danger/20 bg-danger-50 text-danger"
+            }`}
+          >
+            {neutral ? <CircleCheck size={14} className="mt-px shrink-0" /> : <CircleAlert size={14} className="mt-px shrink-0" />}
+            {error}
+          </p>
+        )}
 
-      {lastEmail && (
-        <button
-          type="button"
-          onClick={useLastEmail}
-          className="w-full mb-2 flex items-center justify-center gap-1.5 bg-white border border-line rounded-[10px] py-2.5 text-[13px] font-medium text-ink cursor-pointer"
-        >
-          <User size={14} /> Entrar como {lastEmail}
+        {lastEmail && (
+          <button type="button" onClick={useLastEmail} className="btn-secondary w-full">
+            <UserCheck size={15} /> Entrar como {lastEmail}
+          </button>
+        )}
+
+        <button type="submit" disabled={submitting} className="btn-primary w-full shadow-sm">
+          {submitting && <Loader2 size={15} className="animate-spin" />}
+          {submitting ? "Entrando…" : "Entrar"}
         </button>
-      )}
+      </form>
 
-      <button
-        type="submit"
-        disabled={submitting}
-        className="w-full bg-primary text-white border-none rounded-[10px] py-[11px] text-[14px] font-semibold cursor-pointer disabled:opacity-60"
-      >
-        {submitting ? "Entrando…" : "Entrar"}
-      </button>
-
-      <div className="flex justify-between mt-3">
-        <Link href="/forgot-password" className="text-[12.5px] text-primary font-medium">
+      <div className="mt-5 flex items-center justify-between border-t border-line pt-4 text-[12.5px]">
+        <Link href="/forgot-password" className="font-medium text-primary no-underline hover:underline">
           Esqueci a senha
         </Link>
-        <Link href="/signup" className="text-[12.5px] text-primary font-medium">
-          Criar conta
-        </Link>
+        <span className="text-muted">
+          Não tem conta?{" "}
+          <Link href="/signup" className="font-medium text-primary no-underline hover:underline">
+            Criar conta
+          </Link>
+        </span>
       </div>
-    </form>
+    </div>
   );
 }

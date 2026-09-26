@@ -2,26 +2,251 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   Design tokens
+   ============================================================ */
 :root {
-  --color-primary: #145C4B;
-  --color-secondary: #D9A441;
-  --color-bg: #F6F6F2;
-  --color-border: #E7E6E1;
-  --color-text: #181A17;
+  --surface: #ffffff;
+  --canvas: #fafaf8;
+  --line: #e8e8e3;
+  --line-soft: #f0f0ec;
+  --brand: #145c4b;
+  --brand-soft: #f2f7f5;
+  --text: #0d1110;
+  --text-soft: #2a302e;
+  --text-muted: #787f7c;
+  --radius: 12px;
+  --header-h: 56px;
+  --sidebar-w: 230px;
 }
 
-html, body { margin: 0; padding: 0; }
+/* ============================================================
+   Base
+   ============================================================ */
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
 
 body {
-  background: var(--color-bg);
-  color: var(--color-text);
+  background: var(--canvas);
+  color: var(--text);
   -webkit-font-smoothing: antialiased;
-  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  text-rendering: optimizeLegibility;
 }
 
+* {
+  border-color: var(--line);
+}
+
+/* Foco visível e consistente (acessibilidade) */
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+::selection {
+  background: #c5ded3;
+  color: var(--text);
+}
+
+/* Scrollbar discreta */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d9d9d2;
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #c2c2b9;
+  background-clip: content-box;
+}
+
+/* ============================================================
+   Componentes
+   ============================================================ */
 @layer components {
+  /* ---------- Inputs ---------- */
   .input-base {
-    @apply w-full border border-[#DDDBD4] rounded-lg px-3 py-2 text-sm text-ink bg-white transition
-           focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary;
+    @apply w-full rounded-[10px] border border-line bg-white px-3 py-2 text-[13.5px] text-ink
+           transition duration-150 placeholder:text-[#A8AFA9]
+           hover:border-line-strong
+           focus:border-primary/40 focus:outline-none focus:ring-4 focus:ring-primary/[0.07];
+  }
+
+  textarea.input-base {
+    @apply resize-y leading-relaxed;
+  }
+
+  select.input-base {
+    @apply cursor-pointer appearance-none bg-no-repeat pr-9;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23787F7C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-position: right 0.65rem center;
+    background-size: 15px;
+  }
+
+  input[type="time"].input-base,
+  input[type="date"].input-base {
+    @apply tabular-nums;
+  }
+
+  input[type="checkbox"] {
+    @apply h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border border-line-strong accent-[#145C4B];
+  }
+
+  /* ---------- Superfícies ---------- */
+  .card {
+    @apply rounded-xl border border-line bg-white shadow-xs transition duration-200;
+  }
+
+  .card-hover {
+    @apply hover:-translate-y-0.5 hover:border-line-strong hover:shadow-card;
+  }
+
+  /* ---------- Botões ---------- */
+  .btn {
+    @apply inline-flex select-none items-center justify-center gap-1.5 whitespace-nowrap rounded-[10px]
+           px-3.5 py-2 text-[13px] font-medium no-underline
+           transition duration-150 active:scale-[0.98]
+           disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-primary {
+    @apply btn bg-primary text-white shadow-xs hover:bg-primary-700 hover:shadow-sm;
+  }
+
+  .btn-secondary {
+    @apply btn border border-line bg-white text-ink-soft hover:border-line-strong hover:bg-paper-alt hover:text-ink;
+  }
+
+  .btn-ghost {
+    @apply btn text-ink-muted hover:bg-paper-alt hover:text-ink;
+  }
+
+  .btn-danger {
+    @apply btn border border-danger/25 bg-danger-50 text-danger hover:border-danger/40 hover:bg-danger-100;
+  }
+
+  .btn-sm {
+    @apply px-2.5 py-1.5 text-[12.5px];
+  }
+
+  /* ---------- Badges ---------- */
+  .badge {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11.5px] font-medium leading-none;
+  }
+
+  .badge-published {
+    @apply badge bg-ok-50 text-ok;
+  }
+  .badge-draft {
+    @apply badge bg-warn-50 text-warn;
+  }
+  .badge-disabled {
+    @apply badge bg-paper-alt text-ink-muted;
+  }
+
+  /* ---------- Ícones de ação ---------- */
+  .icon-btn {
+    @apply inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] border border-transparent
+           text-ink-muted no-underline transition duration-150
+           hover:border-line hover:bg-paper-alt hover:text-ink active:scale-95;
+  }
+
+  .icon-btn-danger {
+    @apply hover:border-danger/20 hover:bg-danger-50 hover:text-danger;
+  }
+
+  /* ---------- Tooltip ---------- */
+  .tip {
+    @apply pointer-events-none absolute bottom-full left-1/2 z-50 mb-1.5 -translate-x-1/2 whitespace-nowrap
+           rounded-md bg-[#0D1110] px-2 py-1 text-[11px] font-medium text-white opacity-0 shadow-pop
+           transition duration-150;
+  }
+
+  .tip-wrap {
+    @apply relative inline-flex;
+  }
+
+  .tip-wrap:hover .tip,
+  .tip-wrap:focus-visible .tip {
+    @apply opacity-100;
+  }
+
+  /* ---------- Campos ---------- */
+  .label {
+    @apply mb-1.5 block text-[12.5px] font-medium text-ink-soft;
+  }
+
+  .hint {
+    @apply mt-1.5 block text-[11.5px] leading-relaxed text-muted;
+  }
+
+  .section-title {
+    @apply text-[15px] font-semibold tracking-[-0.01em] text-ink;
+  }
+
+  .panel {
+    @apply rounded-xl border border-line bg-white shadow-xs;
+  }
+
+  /* ---------- Menu / dropdown ---------- */
+  .menu {
+    @apply absolute right-0 top-full z-50 mt-1.5 min-w-[210px] origin-top-right rounded-xl
+           border border-line bg-white p-1 shadow-pop animate-slideDown;
+  }
+
+  .menu-item {
+    @apply flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] text-ink-soft
+           no-underline transition duration-150 hover:bg-paper-alt hover:text-ink;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Respeita preferências de movimento */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

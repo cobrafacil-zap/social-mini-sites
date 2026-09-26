@@ -2,12 +2,24 @@ import type { Metadata } from "next";
 import { Inter, Fraunces } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-fraunces", display: "swap" });
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-fraunces",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: "Social Mini Sites",
-  description: "Painel administrativo e mini sites por cliente.",
+  title: {
+    default: "Social Mini Sites",
+    template: "%s · Social Mini Sites",
+  },
+  description: "Plataforma para criar e gerenciar mini sites dos seus clientes.",
   icons: { icon: "/favicon.svg" },
 };
 

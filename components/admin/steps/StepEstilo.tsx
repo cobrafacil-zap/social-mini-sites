@@ -1,8 +1,9 @@
 "use client";
 
+import { Check, Palette, Sparkles } from "lucide-react";
 import type { Site, ButtonStyle, Customization } from "@/lib/types";
 import { radiusFor } from "@/lib/templates";
-import { Field } from "./Field";
+import { Field, StepHeader } from "./Field";
 
 type Props = { site: Site; set: (p: string, v: unknown) => void; onSave?: () => Promise<unknown>; saved?: boolean };
 
@@ -66,24 +67,25 @@ export function StepEstilo({ site, set, saved }: Props) {
   const c = site.customization;
   const sugg = pickSuggestions(site);
 
-  function applyPalette(p: Customization) {
-    set("customization", p);
-  }
-
   function colorField(label: string, key: keyof typeof c) {
+    const value = c[key] as string;
     return (
       <Field label={label}>
-        <div className="flex gap-2 items-center">
+        <div className="flex items-center gap-2">
+          <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-[10px] border border-line">
+            <input
+              type="color"
+              value={value}
+              onChange={(e) => set(`customization.${key}`, e.target.value)}
+              aria-label={`${label} (seletor de cor)`}
+              className="absolute -left-2 -top-2 h-14 w-14 cursor-pointer border-0 p-0"
+            />
+          </span>
           <input
-            type="color"
-            value={c[key] as string}
+            className="input-base font-mono text-[12.5px] uppercase"
+            value={value}
             onChange={(e) => set(`customization.${key}`, e.target.value)}
-            className="w-[42px] h-9 border border-[#DDDBD4] rounded-lg p-0.5"
-          />
-          <input
-            className="input-base"
-            value={c[key] as string}
-            onChange={(e) => set(`customization.${key}`, e.target.value)}
+            aria-label={`${label} (código hexadecimal)`}
           />
         </div>
       </Field>
@@ -92,11 +94,23 @@ export function StepEstilo({ site, set, saved }: Props) {
 
   return (
     <div>
-      <h2 style={sectionTitle}>Personalização visual</h2>
+      <StepHeader
+        icon={Palette}
+        title="Personalização visual"
+        description="Cores e estilo dos botões. As sugestões já vêm escolhidas para o segmento do cliente."
+      />
 
-      <div className="rounded-xl border border-[#E7E6E1] bg-[#FAFAF7] p-3.5 mb-4">
-        <p className="text-[13px] font-semibold text-ink mb-1">{sugg.label}</p>
-        <p className="text-[12.5px] text-muted mb-2.5">Clique para aplicar — baseado em {site.company.category || site.template}</p>
+      <div className="rounded-xl border border-line bg-paper p-3.5">
+        <div className="mb-2.5 flex items-start gap-2">
+          <Sparkles size={14} className="mt-0.5 shrink-0 text-primary" />
+          <div>
+            <p className="text-[12.5px] font-medium text-ink">{sugg.label}</p>
+            <p className="text-[11.5px] text-muted">
+              Baseado em {site.company.category || site.template}. Clique para aplicar.
+            </p>
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 gap-2">
           {sugg.palettes.map((p, i) => {
             const active = p.primary === c.primary && p.secondary === c.secondary && p.background === c.background;
@@ -104,31 +118,38 @@ export function StepEstilo({ site, set, saved }: Props) {
               <button
                 key={i}
                 type="button"
-                onClick={() => applyPalette(p)}
-                className={`text-left rounded-lg border p-2.5 flex flex-col gap-2 ${active ? "border-primary bg-white" : "border-line bg-white hover:border-[#DDDBD4]"}`}
+                onClick={() => set("customization", p)}
+                className={`flex flex-col gap-2 rounded-[10px] border p-2.5 text-left transition duration-150 active:scale-[0.98] ${
+                  active
+                    ? "border-primary bg-white shadow-xs"
+                    : "border-line bg-white hover:border-line-strong hover:shadow-xs"
+                }`}
               >
                 <span className="flex gap-1">
-                  <span className="w-6 h-6 rounded-full border border-black/10" style={{ background: p.primary }} />
-                  <span className="w-6 h-6 rounded-full border border-black/10" style={{ background: p.secondary }} />
-                  <span className="w-6 h-6 rounded-full border border-black/10" style={{ background: p.background }} />
-                  <span className="w-6 h-6 rounded-full border border-black/10" style={{ background: p.text }} />
+                  {[p.primary, p.secondary, p.background, p.text].map((col, j) => (
+                    <span key={j} className="h-5 w-5 rounded-full border border-black/10" style={{ background: col }} />
+                  ))}
                 </span>
-                <span className="text-[12px] font-medium text-ink">{p.primary} · {p.buttonStyle}</span>
-                {active && <span className="text-[11px] text-ok font-medium">Aplicada</span>}
+                <span className="flex items-center justify-between gap-1">
+                  <span className="font-mono text-[10.5px] uppercase text-ink-soft">{p.primary}</span>
+                  {active && <Check size={12} className="shrink-0 text-primary" />}
+                </span>
               </button>
             );
           })}
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="mt-5 grid gap-4 sm:grid-cols-2">
         {colorField("Cor principal", "primary")}
         {colorField("Cor secundária", "secondary")}
         {colorField("Cor do fundo", "background")}
         {colorField("Cor dos textos", "text")}
       </div>
-      <Field label="Estilo dos botões">
-        <div className="flex gap-2">
+
+      <div className="mt-5">
+        <span className="label">Estilo dos botões</span>
+        <div className="grid grid-cols-3 gap-2">
           {(["rounded", "pill", "square"] as ButtonStyle[]).map((s) => {
             const isActive = c.buttonStyle === s;
             const r = radiusFor(s);
@@ -137,28 +158,41 @@ export function StepEstilo({ site, set, saved }: Props) {
                 key={s}
                 type="button"
                 onClick={() => set("customization.buttonStyle", s)}
-                className="flex-1 py-2.5 text-[13px] cursor-pointer"
+                className="flex flex-col items-center gap-2 rounded-[10px] border px-3 py-3 transition duration-150 active:scale-[0.98]"
                 style={{
-                  borderRadius: r > 20 ? 999 : r,
-                  border: isActive ? "2px solid #145C4B" : "1px solid #DDDBD4",
-                  background: isActive ? "#EAF1EE" : "#fff",
+                  borderRadius: 12,
+                  borderColor: isActive ? c.primary : "var(--line)",
+                  background: isActive ? `${c.primary}0A` : "#fff",
+                  boxShadow: isActive ? `0 0 0 3px ${c.primary}1A` : undefined,
                 }}
               >
-                {s === "rounded" ? "Arredondado" : s === "pill" ? "Pílula" : "Quadrado"}
+                <span
+                  className="h-6 w-full"
+                  style={{ background: c.primary, borderRadius: r > 20 ? 999 : r }}
+                />
+                <span
+                  className="text-[11.5px] font-medium"
+                  style={{ color: isActive ? c.primary : "var(--text-muted)" }}
+                >
+                  {s === "rounded" ? "Arredondado" : s === "pill" ? "Pílula" : "Quadrado"}
+                </span>
               </button>
             );
           })}
         </div>
-      </Field>
-
-      <div className="mt-4 rounded-lg border border-primary/20 bg-[#EAF1EE] px-3 py-2.5">
-        <p className="text-[12.5px] text-ink">
-          {saved ? "✓ Todas as alterações estão salvas (autosave)." : "Salvando..."}
-          {" "}Na última etapa clique em <b>Salvar alterações</b> para garantir que tudo foi gravado antes de publicar.
-        </p>
       </div>
+
+      <p
+        className={`mt-5 flex items-center gap-1.5 rounded-[10px] border px-3 py-2.5 text-[12.5px] ${
+          saved ? "border-ok/20 bg-ok-50 text-ok" : "border-line bg-paper text-muted"
+        }`}
+        aria-live="polite"
+      >
+        <Check size={14} className="shrink-0" />
+        {saved
+          ? "Todas as alterações estão salvas. Clique em Salvar alterações para garantir."
+          : "Salvando alterações…"}
+      </p>
     </div>
   );
 }
-
-const sectionTitle = { fontSize: 17, fontWeight: 600, color: "#181A17", marginBottom: 18 } as const;

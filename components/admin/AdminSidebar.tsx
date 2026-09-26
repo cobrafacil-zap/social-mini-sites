@@ -1,15 +1,19 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, Plus, Store, Search, ChevronDown } from "lucide-react";
+import {
+  LayoutGrid, Users, Plus, Search, ChevronDown, X, Store,
+} from "lucide-react";
+import { Mark } from "./AdminHeader";
 
 type Client = { id: string; name: string; slug: string; status: string };
 
-export function AdminSidebar({ clients }: { clients: Client[] }) {
+export function AdminSidebar({
+  clients, mobileOpen, onMobileOpenChange,
+}: { clients: Client[]; mobileOpen: boolean; onMobileOpenChange: (v: boolean) => void }) {
   const pathname = usePathname();
-  const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
   const [q, setQ] = useState("");
   const [expanded, setExpanded] = useState(false);
   const [open, setOpen] = useState(true);
@@ -17,96 +21,195 @@ export function AdminSidebar({ clients }: { clients: Client[] }) {
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
     if (!term) return clients;
-    return clients.filter((c) => c.name.toLowerCase().includes(term) || c.slug.toLowerCase().includes(term));
+    return clients.filter(
+      (c) => c.name.toLowerCase().includes(term) || c.slug.toLowerCase().includes(term),
+    );
   }, [clients, q]);
 
-  const visible = expanded ? filtered : filtered.slice(0, 5);
+  const visible = expanded ? filtered : filtered.slice(0, 6);
 
-  return (
-    <aside className="w-[260px] shrink-0 bg-white border-r border-line min-h-[calc(100vh-57px)] sticky top-[57px] hidden lg:block overflow-y-auto">
-      <nav className="py-5 px-3">
+  const closeMobile = useCallback(() => onMobileOpenChange(false), [onMobileOpenChange]);
+
+  // fecha o drawer no mobile ao navegar
+  useEffect(() => {
+    closeMobile();
+  }, [pathname, closeMobile]);
+
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
+
+  const isCurrent = (id: string) => pathname.includes(id);
+  const isDashboard = pathname === "/admin" || pathname === "/admin/";
+
+  const body = (
+    <nav className="flex h-full flex-col" aria-label="Navegação principal">
+      {/* Marca */}
+      <Link
+        href="/admin"
+        onClick={closeMobile}
+        className="flex items-center gap-2.5 px-4 no-underline"
+      >
+        <Mark />
+        <span className="min-w-0">
+          <span className="block truncate text-[14px] font-semibold leading-tight tracking-[-0.01em] text-ink">
+            Social Mini Sites
+          </span>
+          <span className="block truncate text-[11px] leading-tight text-muted">Painel de clientes</span>
+        </span>
+        <button
+          type="button"
+          onClick={(e) => { e.preventDefault(); closeMobile(); }}
+          className="icon-btn ml-auto lg:hidden"
+          aria-label="Fechar menu"
+        >
+          <X size={16} />
+        </button>
+      </Link>
+
+      <div className="mt-5 px-2.5">
         <Link
           href="/admin"
-          className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13.5px] font-medium no-underline mb-1 ${isActive("/admin") && pathname === "/admin" ? "bg-[#EAF1EE] text-primary" : "text-ink hover:bg-[#FAFAF7]"}`}
+          onClick={closeMobile}
+          aria-current={isDashboard ? "page" : undefined}
+          className={`flex items-center gap-2.5 rounded-[10px] px-3 py-2 text-[13px] font-medium no-underline transition duration-150 ${
+            isDashboard ? "bg-primary-50 text-primary" : "text-ink-soft hover:bg-paper-alt hover:text-ink"
+          }`}
         >
-          <LayoutDashboard size={16} /> Dashboard
+          <LayoutGrid size={16} className="shrink-0 opacity-80" />
+          Visão geral
         </Link>
+      </div>
 
-        <div className="mt-5">
-          <div className="flex items-center justify-between px-3 mb-2">
-            <button
-              type="button"
-              onClick={() => setOpen(!open)}
-              className="flex items-center gap-1.5 text-[12px] font-semibold tracking-wide text-muted uppercase hover:text-ink"
-            >
-              <Users size={13} /> Clientes
-              <ChevronDown size={12} className={`transition ${open ? "rotate-180" : ""}`} />
-            </button>
-            <Link href="/admin/new" title="Criar mini site" className="w-6 h-6 rounded-md bg-primary text-white flex items-center justify-center no-underline">
-              <Plus size={12} />
+      {/* Clientes */}
+      <div className="mt-6 flex min-h-0 flex-1 flex-col px-2.5">
+        <div className="flex items-center gap-1 px-1.5">
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            className="flex flex-1 items-center gap-1.5 rounded-md px-1 py-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-muted transition duration-150 hover:text-ink"
+          >
+            <Users size={12} />
+            Clientes
+            <span className="ml-0.5 rounded-full bg-paper-alt px-1.5 py-px text-[10px] font-semibold tabular-nums text-ink-muted">
+              {clients.length}
+            </span>
+            <ChevronDown
+              size={12}
+              className={`ml-auto transition duration-200 ${open ? "rotate-180" : ""}`}
+            />
+          </button>
+          <span className="tip-wrap">
+            <Link href="/admin/new" onClick={closeMobile} className="icon-btn h-6 w-6" aria-label="Novo cliente">
+              <Plus size={13} />
             </Link>
-          </div>
+            <span className="tip" role="tooltip">Novo cliente</span>
+          </span>
+        </div>
 
-          {open && (
-            <>
-              {/* busca com lupa */}
-              <div className="px-3 mb-2">
-                <div className="relative">
-                  <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted" />
-                  <input
-                    value={q}
-                    onChange={(e) => { setQ(e.target.value); setExpanded(true); }}
-                    placeholder="Buscar cliente..."
-                    className="w-full pl-8 pr-2 py-1.5 rounded-lg border border-line bg-[#FAFAF7] text-[12.5px] placeholder:text-muted focus:outline-none focus:border-primary/40"
-                  />
-                </div>
-              </div>
+        {open && (
+          <div className="animate-rise">
+            <div className="relative mt-2">
+              <Search size={13} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted" />
+              <input
+                value={q}
+                onChange={(e) => { setQ(e.target.value); setExpanded(true); }}
+                placeholder="Buscar cliente"
+                aria-label="Buscar cliente"
+                className="w-full rounded-[9px] border border-line bg-paper py-1.5 pl-8 pr-2 text-[12.5px] text-ink transition duration-150 placeholder:text-[#A8AFA9] hover:border-line-strong focus:border-primary/40 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary/[0.07]"
+              />
+            </div>
 
-              <div className="space-y-0.5">
-                {filtered.length === 0 ? (
-                  <p className="px-3 py-2 text-[12.5px] text-muted">{q ? "Nenhum resultado." : "Nenhum cliente ainda."}</p>
-                ) : (
-                  <>
-                    {visible.map((c) => {
-                      const active = pathname.includes(c.id) || pathname.includes(c.slug);
-                      return (
-                        <Link
-                          key={c.id}
-                          href={`/admin/client/${c.id}`}
-                          className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] no-underline truncate ${active ? "bg-[#EAF1EE] text-primary font-medium" : "text-[#3A3D38] hover:bg-[#FAFAF7]"}`}
-                          title={c.name}
-                        >
-                          <Store size={14} className="shrink-0 opacity-60" />
-                          <span className="truncate flex-1">{c.name || "(sem nome)"}</span>
-                          <span className={`w-2 h-2 rounded-full shrink-0 ${c.status === "published" ? "bg-ok" : c.status === "draft" ? "bg-[#D9A441]" : "bg-danger"}`} />
-                        </Link>
-                      );
-                    })}
-                    {/* setinha para baixo/cima independente da quantidade */}
+            <div className="no-scrollbar mt-1.5 max-h-[min(52vh,520px)] space-y-0.5 overflow-y-auto pr-0.5">
+              {filtered.length === 0 ? (
+                <p className="px-2.5 py-3 text-[12.5px] text-muted">
+                  {q ? "Nenhum resultado." : "Nenhum cliente ainda."}
+                </p>
+              ) : (
+                <>
+                  {visible.map((c) => (
+                    <Link
+                      key={c.id}
+                      href={`/admin/client/${c.id}`}
+                      onClick={closeMobile}
+                      title={c.name}
+                      aria-current={isCurrent(c.id) ? "page" : undefined}
+                      className={`group flex items-center gap-2.5 rounded-[9px] px-2.5 py-[7px] text-[13px] no-underline transition duration-150 ${
+                        isCurrent(c.id)
+                          ? "bg-primary-50 font-medium text-primary"
+                          : "text-ink-soft hover:bg-paper-alt hover:text-ink"
+                      }`}
+                    >
+                      <Store size={14} className="shrink-0 opacity-50" />
+                      <span className="min-w-0 flex-1 truncate">{c.name || "(sem nome)"}</span>
+                      <span
+                        className={`h-1.5 w-1.5 shrink-0 rounded-full transition duration-150 ${
+                          c.status === "published"
+                            ? "bg-okDot"
+                            : c.status === "draft"
+                              ? "bg-[#F79009]"
+                              : "bg-[#C8CFCC]"
+                        }`}
+                        aria-label={c.status}
+                      />
+                    </Link>
+                  ))}
+
+                  {filtered.length > 6 && (
                     <button
                       type="button"
-                      onClick={() => setExpanded(!expanded)}
-                      className="w-full flex items-center justify-center gap-1 px-3 py-2 text-[12.5px] font-medium text-primary hover:bg-[#EAF1EE] rounded-lg"
+                      onClick={() => setExpanded((v) => !v)}
+                      className="flex w-full items-center justify-center gap-1 rounded-[9px] px-2.5 py-1.5 text-[12px] font-medium text-primary transition duration-150 hover:bg-primary-50"
                     >
-                      <ChevronDown size={14} className={`transition ${expanded ? "rotate-180" : ""}`} />
-                      {expanded ? "Esconder" : filtered.length > 5 ? `Ver todos (${filtered.length})` : "Ver todos"}
+                      <ChevronDown size={13} className={`transition duration-200 ${expanded ? "rotate-180" : ""}`} />
+                      {expanded ? "Mostrar menos" : `Ver todos (${filtered.length})`}
                     </button>
-                  </>
-                )}
-              </div>
-            </>
-          )}
-        </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
 
-        <div className="mt-6 px-3">
-          <Link
-            href="/admin/new"
-            className="flex items-center justify-center gap-1.5 bg-primary text-white rounded-lg px-3 py-2.5 text-[13px] font-semibold no-underline"
-          >
-            <Plus size={14} /> Novo cliente
-          </Link>
+      {/* Novo cliente */}
+      <div className="p-2.5">
+        <Link
+          href="/admin/new"
+          onClick={closeMobile}
+          className="flex items-center justify-center gap-1.5 rounded-[10px] bg-primary px-3 py-2.5 text-[13px] font-semibold text-white no-underline shadow-xs transition duration-150 hover:bg-primary-700 hover:shadow-sm active:scale-[0.98]"
+        >
+          <Plus size={15} /> Novo cliente
+        </Link>
+      </div>
+    </nav>
+  );
+
+  return (
+    <>
+      {/* Desktop */}
+      <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-[var(--sidebar-w)] shrink-0 overflow-y-auto border-r border-line bg-white lg:block">
+        <div className="py-4">{body}</div>
+      </aside>
+
+      {/* Drawer mobile */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <button
+            type="button"
+            aria-label="Fechar menu"
+            onClick={closeMobile}
+            className="absolute inset-0 bg-[#0D1110]/25 backdrop-blur-[2px] animate-fadeIn"
+          />
+          <div className="absolute inset-y-0 left-0 w-[270px] overflow-y-auto border-r border-line bg-white shadow-pop animate-slideInLeft">
+            <div className="py-4">{body}</div>
+          </div>
         </div>
-      </nav>
-    </aside>
+      )}
+    </>
   );
 }

@@ -49,6 +49,8 @@ export type Customization = {
   background: string;
   text: string;
   buttonStyle: ButtonStyle;
+  /** Qual dos 8 layouts renderiza este site. Persistido aqui para não exigir migração. */
+  layout?: string;
 };
 
 export type Site = {

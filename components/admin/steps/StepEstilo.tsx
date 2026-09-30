@@ -1,9 +1,10 @@
 "use client";
 
-import { Check, Palette, Sparkles } from "lucide-react";
+import { Check, Palette, Sparkles, LayoutGrid } from "lucide-react";
 import type { Site, ButtonStyle, Customization } from "@/lib/types";
 import { radiusFor } from "@/lib/templates";
 import { Field, StepHeader } from "./Field";
+import { MODELS, resolveLayout } from "@/lib/models";
 
 type Props = { site: Site; set: (p: string, v: unknown) => void; onSave?: () => Promise<unknown>; saved?: boolean };
 
@@ -118,7 +119,7 @@ export function StepEstilo({ site, set, saved }: Props) {
               <button
                 key={i}
                 type="button"
-                onClick={() => set("customization", p)}
+                onClick={() => set("customization", { ...c, ...p, layout: resolveLayout(site) })}
                 className={`flex flex-col gap-2 rounded-[10px] border p-2.5 text-left transition duration-150 active:scale-[0.98] ${
                   active
                     ? "border-primary bg-white shadow-xs"
@@ -133,6 +134,48 @@ export function StepEstilo({ site, set, saved }: Props) {
                 <span className="flex items-center justify-between gap-1">
                   <span className="font-mono text-[10.5px] uppercase text-ink-soft">{p.primary}</span>
                   {active && <Check size={12} className="shrink-0 text-primary" />}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ---------- LAYOUT ---------- */}
+      <div className="mt-5">
+        <div className="mb-2 flex items-center gap-2">
+          <LayoutGrid size={14} className="text-primary" />
+          <p className="text-[12.5px] font-medium text-ink">Estrutura do site</p>
+        </div>
+        <p className="mb-3 text-[11.5px] leading-relaxed text-muted">
+          Cada modelo tem uma estrutura própria. Trocar aqui reformata todo o mini site.
+        </p>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {MODELS.map((m) => {
+            const active = resolveLayout(site) === m.id;
+            return (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() =>
+                  set("customization", { ...c, layout: m.id, primary: m.palette.primary, secondary: m.palette.secondary })
+                }
+                className={`flex items-start gap-2.5 rounded-[10px] border p-3 text-left transition duration-150 active:scale-[0.99] ${
+                  active
+                    ? "border-primary bg-white shadow-xs"
+                    : "border-line bg-white hover:border-line-strong"
+                }`}
+              >
+                <span className="flex gap-0.5 pt-0.5">
+                  <span className="h-4 w-1.5 rounded-sm" style={{ background: m.palette.primary }} aria-hidden="true" />
+                  <span className="h-4 w-1.5 rounded-sm" style={{ background: m.palette.secondary }} aria-hidden="true" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center gap-1.5">
+                    <span className="truncate text-[12.5px] font-medium text-ink">{m.label}</span>
+                    {active && <Check size={12} className="shrink-0 text-primary" />}
+                  </span>
+                  <span className="mt-0.5 block text-[11px] leading-snug text-muted">{m.profile}</span>
                 </span>
               </button>
             );

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { slugify, isValidSlug } from "@/lib/slugify";
 import { TEMPLATES } from "@/lib/templates";
+import { MODEL_BY_SEED, MODEL_BY_LAYOUT, LAYOUT_FALLBACK, isLayoutKey } from "@/lib/models";
 import { seedFor } from "@/lib/seed";
 import type { Site, Template } from "@/lib/types";
 import { DEFAULT_COMPANY, DEFAULT_CUSTOMIZATION, DEFAULT_HOURS, DEFAULT_LOCATION } from "@/lib/types";
@@ -17,17 +18,6 @@ async function requireAdmin() {
   return supabase;
 }
 
-const MODEL_PALETTES: Record<string, { primary: string; secondary: string; background: string; text: string; buttonStyle: "rounded" | "pill" | "square" }> = {
-  "villa-classico": { primary: "#9B1B30", secondary: "#E9C46A", background: "#FFF8F0", text: "#1A1A1A", buttonStyle: "rounded" },
-  "burger-moderno": { primary: "#111111", secondary: "#E30613", background: "#FFFFFF", text: "#111111", buttonStyle: "pill" },
-  "boutique-elegante": { primary: "#3B2A4A", secondary: "#D4A5C4", background: "#FAF6F2", text: "#1A1410", buttonStyle: "pill" },
-  "loja-urbana": { primary: "#0A0A0A", secondary: "#00E676", background: "#FFFFFF", text: "#0A0A0A", buttonStyle: "square" },
-  "servico-tecnico": { primary: "#0B3D91", secondary: "#FFB400", background: "#FFFFFF", text: "#0A0A0A", buttonStyle: "square" },
-  "servico-premium": { primary: "#0A0A0A", secondary: "#D9A441", background: "#FFFBF5", text: "#1E1B2E", buttonStyle: "rounded" },
-  "saude-bemestar": { primary: "#5B6F4A", secondary: "#E8B4A0", background: "#F8F5F0", text: "#1A1A1A", buttonStyle: "rounded" },
-  "corporativo": { primary: "#0F2A44", secondary: "#C5A254", background: "#F8F6F1", text: "#0F172A", buttonStyle: "rounded" },
-};
-
 export async function createSite(formData: FormData): Promise<void> {
   const supabase = await requireAdmin();
   const template = String(formData.get("template") ?? "") as Template;
@@ -38,7 +28,7 @@ export async function createSite(formData: FormData): Promise<void> {
   const useSeed = formData.get("useSeed") === "on" || formData.get("useSeed") === "true";
   const modelId = String(formData.get("modelId") ?? "");
   const seed = useSeed ? seedFor(template) : null;
-  const modelPalette = modelId ? MODEL_PALETTES[modelId] : null;
+  const model = modelId ? MODEL_BY_SEED[modelId] : undefined;
 
   const id = crypto.randomUUID();
   const tmp = TEMPLATES[template];
@@ -56,7 +46,11 @@ export async function createSite(formData: FormData): Promise<void> {
 
   const baseButtons = (seed?.buttons ?? tmp.defaultButtons.map((b, i) => ({ ...b, id: `btn_${i}`, order: i })));
 
-  const customization = modelPalette ?? seed?.customization ?? DEFAULT_CUSTOMIZATION;
+  // paleta + layout vêm do modelo escolhido; sem modelo, cai no seed
+  const customization = model
+    ? { ...model.palette, layout: model.id }
+    : seed?.customization ?? { ...DEFAULT_CUSTOMIZATION };
+
   const { error } = await supabase.from("sites").insert({
     id,
     slug: finalSlug,
@@ -139,6 +133,12 @@ export async function duplicateSite(id: string): Promise<{ error?: string; id?: 
     : [];
 
   const company = { ...srcCompany, name: `${srcCompany.name || src.slug} (cópia)` };
+  const srcCustom = { ...(src.customization as Site["customization"]) };
+  const srcLayout = isLayoutKey(srcCustom.layout)
+    ? srcCustom.layout
+    : MODEL_BY_LAYOUT[
+        LAYOUT_FALLBACK[src.template] ?? "restaurant-classic"
+      ].id;
 
   const { error: insErr } = await supabase.from("sites").insert({
     id: newId,
@@ -150,7 +150,7 @@ export async function duplicateSite(id: string): Promise<{ error?: string; id?: 
     hours: src.hours,
     gallery,
     buttons,
-    customization: src.customization,
+    customization: { ...srcCustom, layout: srcLayout },
   } satisfies Partial<SiteRow> as never);
 
   if (insErr) {

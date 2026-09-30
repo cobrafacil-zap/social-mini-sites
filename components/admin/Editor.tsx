@@ -242,7 +242,7 @@ export function Editor({ initial }: { initial: Site }) {
             <p className="text-[11.5px] font-medium text-ink-muted">Pré-visualização em tempo real</p>
           </div>
           <PhoneFrame>
-            <MiniSitePublic site={site} interactive={false} onEvent={() => {}} />
+            <MiniSitePublic site={site} interactive={false} onEvent={() => {}} preview />
           </PhoneFrame>
           <p className="mt-4 text-center text-[11px] text-muted">
             A prévia não registra acessos. Publique para valer no ar.

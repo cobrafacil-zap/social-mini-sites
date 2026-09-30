@@ -99,7 +99,7 @@ export function StoreUrban() {
                 Lançamento
               </p>
               <p className="mt-1 text-[19px] font-black uppercase leading-tight text-white">
-                {site.buttons[0]?.name ?? co.name || "Novo drop"}
+                {(site.buttons[0]?.name || co.name) || "Novo drop"}
               </p>
             </div>
           </div>

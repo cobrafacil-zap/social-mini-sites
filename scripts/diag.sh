@@ -87,20 +87,24 @@ cmd_build() {
   [ -n "$did" ] || { ok "Nenhum deploy em ERROR — build mais recente passou."; return 0; }
 
   head_ "ERROS DE COMPILACAO (deploy $did)"
-  local ev="/v13/deployments/$did/events?builds=1&logs=1&limit=400"
+  # v3 devolve array plano de eventos; cada um tem .text
+  local ev="/v3/deployments/$did/events?builds=1&logs=1&limit=800"
   [ -n "$tid" ] && ev="$ev&teamId=$tid"
   vget "$ev" > /tmp/_v_events.json
-  local clean; clean=$(jq -r '.. | objects | select(has("text")) | .text' /tmp/_v_events.json 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g')
+  local clean
+  clean=$(jq -r '.[].text // empty' /tmp/_v_events.json 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g')
 
-  local errs; errs=$(printf '%s\n' "$clean" | grep -aE 'Type error|Failed to compile|error TS[0-9]+|Module not found|Cannot find (name|module)|does not exist on type|is not assignable to|requires parens' | tail -25)
-  if [ -n "$errs" ]; then
-    printf '%s\n' "$errs" | sed 's/^/  /'
-  else
-    warn "nenhuma linha de erro reconhecida no payload"
+  if [ -z "$clean" ]; then
+    warn "payload sem eventos (deploy pode ter expirado o log)"
+    return 0
   fi
 
-  say "\n${DIM}Ultimas linhas do log de build:${RST}"
-  printf '%s\n' "$clean" | grep -av '^\s*$' | tail -18 | sed 's/^/  /'
+  say ""
+  printf '%s\n' "$clean" | grep -aE 'Type error|Failed to compile|error TS[0-9]+|Module not found|Cannot find (name|module)|does not exist on type|is not assignable to|requires parens|Attempted import' \
+    | sed 's/^/  /' | tail -20
+
+  say "\n${DIM}Contexto do log:${RST}"
+  printf '%s\n' "$clean" | grep -av '^\s*$' | tail -22 | sed 's/^/  /'
 }
 
 # ============================= SUPABASE ====================================

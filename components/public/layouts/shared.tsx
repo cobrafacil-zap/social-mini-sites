@@ -150,9 +150,10 @@ export function HoursTable({ compact = false }: { compact?: boolean }) {
 }
 
 export function LocationBlock({ actionLabel = "Como chegar" }: { actionLabel?: string }) {
-  const { site, go } = useLayout();
+  const { site, go, radius } = useLayout();
   const addr = fullAddress(site.location);
   if (!addr) return null;
+  const mapRadius = Math.max(10, radius * 0.6);
   return (
     <div>
       <p className="text-[13.5px] leading-relaxed">{addr}</p>
@@ -166,10 +167,7 @@ export function LocationBlock({ actionLabel = "Como chegar" }: { actionLabel?: s
           {site.company.phone}
         </a>
       )}
-      <div
-        className="mt-3 overflow-hidden"
-        style={{ borderRadius: Math.max(10, site.radius * 0.6), height: 170 }}
-      >
+      <div className="mt-3 overflow-hidden" style={{ borderRadius: mapRadius, height: 170 }}>
         <iframe
           title="mapa"
           src={mapsEmbed(site.location)}
@@ -185,7 +183,7 @@ export function LocationBlock({ actionLabel = "Como chegar" }: { actionLabel?: s
         rel="noopener noreferrer"
         onClick={() => go("comoChegar")}
         className="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 border px-4 py-2.5 text-[13px] font-semibold no-underline"
-        style={{ borderRadius: radiusFor(site.customization.buttonStyle), borderColor: `${site.customization.text}22` }}
+        style={{ borderRadius: radius, borderColor: `${site.customization.text}22` }}
       >
         {actionLabel}
       </a>

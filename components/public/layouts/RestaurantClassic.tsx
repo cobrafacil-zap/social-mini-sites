@@ -8,7 +8,7 @@ import { useLayout, Cover, Logo, OpenBadge, HoursTable, LocationBlock, SocialRow
  * "Mais pedidos" · galeria · barra fixa de WhatsApp.
  */
 export function RestaurantClassic() {
-  const { site, c, radius, go, wa, preview } = useLayout();
+  const { site, c, radius, go, wa, preview, open } = useLayout();
   const co = site.company;
 
   // "Mais pedidos" e "cardápio" saem dos botões reais do editor

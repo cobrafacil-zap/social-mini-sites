@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { slugify, isValidSlug } from "@/lib/slugify";
 import { TEMPLATES } from "@/lib/templates";
-import { MODEL_BY_SEED, MODEL_BY_LAYOUT, LAYOUT_FALLBACK, isLayoutKey } from "@/lib/models";
+import { modelBySeed, MODEL_BY_LAYOUT, LAYOUT_FALLBACK, isLayoutKey } from "@/lib/models";
 import { seedFor } from "@/lib/seed";
 import type { Site, Template } from "@/lib/types";
 import { DEFAULT_COMPANY, DEFAULT_CUSTOMIZATION, DEFAULT_HOURS, DEFAULT_LOCATION } from "@/lib/types";
@@ -28,7 +28,7 @@ export async function createSite(formData: FormData): Promise<void> {
   const useSeed = formData.get("useSeed") === "on" || formData.get("useSeed") === "true";
   const modelId = String(formData.get("modelId") ?? "");
   const seed = useSeed ? seedFor(template) : null;
-  const model = modelId ? MODEL_BY_SEED[modelId] : undefined;
+  const model = modelId ? modelBySeed(modelId) : undefined;
 
   const id = crypto.randomUUID();
   const tmp = TEMPLATES[template];

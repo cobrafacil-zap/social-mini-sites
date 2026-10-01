@@ -15,7 +15,7 @@ import type { ButtonStyle, Template } from "./types";
 export type LayoutKey =
   | "restaurant-classic"
   | "restaurant-modern"
-  | "boutique-elegant"
+  | "boutique-elegante"
   | "store-urban"
   | "service-technical"
   | "service-premium"
@@ -45,7 +45,7 @@ export type Model = {
 export const MODELS: Model[] = [
   {
     id: "restaurant-classic",
-    seed: "villa-classico",
+    seed: "restaurant-classic",
     label: "Restaurante Clássico",
     tagline: "Elegante, acolhedor, tradicional",
     profile: "Pizzarias, restaurantes familiares, cantinas",
@@ -55,7 +55,7 @@ export const MODELS: Model[] = [
   },
   {
     id: "restaurant-modern",
-    seed: "burger-moderno",
+    seed: "restaurant-modern",
     label: "Restaurante Moderno",
     tagline: "Impactante, urbano, delivery",
     profile: "Hamburguerias, bares, comida jovem",
@@ -64,7 +64,7 @@ export const MODELS: Model[] = [
     palette: { primary: "#111111", secondary: "#E30613", background: "#FFFFFF", text: "#111111", buttonStyle: "pill" },
   },
   {
-    id: "boutique-elegant",
+    id: "boutique-elegante",
     seed: "boutique-elegante",
     label: "Loja Elegante",
     tagline: "Minimalista, editorial, sofisticado",
@@ -75,7 +75,7 @@ export const MODELS: Model[] = [
   },
   {
     id: "store-urban",
-    seed: "loja-urbana",
+    seed: "store-urban",
     label: "Loja Urbana",
     tagline: "Street, experimental, ousada",
     profile: "Streetwear, sneakers, moda jovem",
@@ -85,7 +85,7 @@ export const MODELS: Model[] = [
   },
   {
     id: "service-technical",
-    seed: "servico-tecnico",
+    seed: "service-technical",
     label: "Serviços Técnicos",
     tagline: "Objetiva, técnica, confiável",
     profile: "Eletricistas, oficinas, energia solar",
@@ -95,7 +95,7 @@ export const MODELS: Model[] = [
   },
   {
     id: "service-premium",
-    seed: "servico-premium",
+    seed: "service-premium",
     label: "Serviços Premium",
     tagline: "Luxuosa, limpa, exclusiva",
     profile: "Clínicas, estética, arquitetura",
@@ -105,7 +105,7 @@ export const MODELS: Model[] = [
   },
   {
     id: "health-wellness",
-    seed: "saude-bemestar",
+    seed: "health-wellness",
     label: "Saúde e Bem-estar",
     tagline: "Acolhedora, leve, humana",
     profile: "Psicólogos, nutricionistas, terapeutas",
@@ -115,7 +115,7 @@ export const MODELS: Model[] = [
   },
   {
     id: "corporate",
-    seed: "corporativo",
+    seed: "corporate",
     label: "Corporativo",
     tagline: "Sólida, estruturada, B2B",
     profile: "Advocacia, contabilidade, consultoria",
@@ -136,7 +136,7 @@ export const MODEL_BY_LAYOUT: Record<LayoutKey, Model> = Object.fromEntries(
 /** Layout usado quando o site ainda não tem `customization.layout` gravado. */
 export const LAYOUT_FALLBACK: Record<Template, LayoutKey> = {
   restaurante: "restaurant-classic",
-  loja: "boutique-elegant",
+  loja: "boutique-elegante",
   servicos: "service-technical",
   profissional: "health-wellness",
 };
@@ -156,4 +156,26 @@ export function resolveLayout(site: {
   const saved = site.customization.layout;
   if (isLayoutKey(saved)) return saved;
   return LAYOUT_FALLBACK[site.template] ?? "restaurant-classic";
+}
+
+/**
+ * Aliases legados: versões antigas do formulário mandavam `modelId` com outro
+ * nome. Mantidos para que links/formulários antigos continuem funcionando.
+ */
+const LEGACY_SEED: Record<string, LayoutKey> = {
+  "villa-classico": "restaurant-classic",
+  "burger-moderno": "restaurant-modern",
+  "boutique-elegante": "boutique-elegante",
+  "loja-urbana": "store-urban",
+  "servico-tecnico": "service-technical",
+  "servico-premium": "service-premium",
+  "saude-bemestar": "health-wellness",
+  "corporativo": "corporate",
+};
+
+/** Resolve um `modelId` (atual ou legado) para o modelo correspondente. */
+export function modelBySeed(seed: string): Model | undefined {
+  if (MODEL_BY_SEED[seed]) return MODEL_BY_SEED[seed];
+  const layout = LEGACY_SEED[seed];
+  return layout ? MODEL_BY_LAYOUT[layout] : undefined;
 }

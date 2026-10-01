@@ -16,7 +16,7 @@ import type { LayoutKey } from "@/lib/models";
 const REGISTRY: Record<LayoutKey, ComponentType> = {
   "restaurant-classic": RestaurantClassic,
   "restaurant-modern": RestaurantModern,
-  "boutique-elegant": BoutiqueElegant,
+  "boutique-elegante": BoutiqueElegant,
   "store-urban": StoreUrban,
   "service-technical": ServiceTechnical,
   "service-premium": ServicePremium,

@@ -12,13 +12,6 @@ export function Corporate() {
   const co = site.company;
   const areas = [...site.buttons].sort((a, b) => a.order - b.order);
 
-  return (
-    <div className="min-h-full" style={{ background: c.background, color: c.text }}>
-      <style>{`
-        .areas-grid { grid-template-columns: 1fr; }
-        @media (min-width: 640px) { .areas-grid { grid-template-columns: var(--areas-cols); } }
-      `}</style>
-
   // Indicadores estruturais reais (derivados dos campos preenchidos no painel)
   const diasAbertos = Object.values(site.hours).filter((d) => !d.closed).length;
   const canais = [co.whatsapp, co.phone, co.email].filter(Boolean).length;
@@ -36,6 +29,11 @@ export function Corporate() {
 
   return (
     <div className="min-h-full" style={{ background: c.background, color: c.text }}>
+      <style>{`
+        .areas-grid { grid-template-columns: 1fr; }
+        @media (min-width: 640px) { .areas-grid { grid-template-columns: var(--areas-cols); } }
+      `}</style>
+
       {/* ---------- HERO INSTITUCIONAL ---------- */}
       <header style={{ background: c.primary, color: "#fff" }}>
         <div className="mx-auto max-w-[1100px] px-5">

@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Building2, CircleAlert } from "lucide-react";
 import type { Site } from "@/lib/types";
 import { slugify, isValidSlug } from "@/lib/slugify";
 import { Field, StepHeader, Section } from "./Field";
 import { AiAssistButton } from "@/components/admin/AiAssistButton";
+import { RemoveBackgroundButton } from "@/components/admin/RemoveBackgroundButton";
 
 const MAX_BYTES = 4 * 1024 * 1024;
 
@@ -26,14 +27,14 @@ export function StepEmpresa({ site, set }: { site: Site; set: (p: string, v: unk
   const touched = (site as unknown as { slugTouched?: boolean }).slugTouched === true;
   const [err, setErr] = useState<string | null>(null);
 
-  async function upload(file: File, field: "logoUrl" | "coverUrl") {
+  async function upload(file: File | Blob, field: "logoUrl" | "coverUrl", filename?: string) {
     setErr(null);
     if (file.size > MAX_BYTES) {
       setErr("Arquivo maior que 4 MB. Envie uma imagem menor.");
       return;
     }
     const fd = new FormData();
-    fd.append("file", file);
+    fd.append("file", file, filename ?? (file instanceof File ? file.name : "imagem.png"));
     try {
       const res = await fetch("/api/upload", { method: "POST", body: fd });
       if (!res.ok) {
@@ -163,6 +164,8 @@ export function StepEmpresa({ site, set }: { site: Site; set: (p: string, v: unk
             preview={<LogoPreview url={c.logoUrl} />}
             onChange={(v) => set("company.logoUrl", v)}
             onUpload={(f) => void upload(f, "logoUrl")}
+            onProcessed={(blob) => void upload(blob, "logoUrl", "removbg.png")}
+            allowRemoveBg
             hint="Quadrada. Aparece sobre a capa."
             previewClass="h-16 w-16"
           />
@@ -173,6 +176,8 @@ export function StepEmpresa({ site, set }: { site: Site; set: (p: string, v: unk
             preview={<CoverPreview url={c.coverUrl} position={c.coverPosition} />}
             onChange={(v) => set("company.coverUrl", v)}
             onUpload={(f) => void upload(f, "coverUrl")}
+            onProcessed={(blob) => void upload(blob, "coverUrl", "removbg-capa.png")}
+            allowRemoveBg
             onCoverPosition={(v) => set("company.coverPosition", v)}
             hint="Horizontal, 1600px ou mais."
             previewClass="h-20 w-full"
@@ -207,6 +212,7 @@ export function StepEmpresa({ site, set }: { site: Site; set: (p: string, v: unk
 
 function ImageField({
   label, value, onChange, onUpload, hint, preview, previewClass, coverPosition, onCoverPosition,
+  onProcessed, allowRemoveBg = false,
 }: {
   label: string;
   value: string;
@@ -217,7 +223,12 @@ function ImageField({
   previewClass: string;
   coverPosition?: string;
   onCoverPosition?: (v: string) => void;
+  onProcessed?: (blob: Blob) => void;
+  allowRemoveBg?: boolean;
 }) {
+  // guarda o arquivo local para o "remover fundo" poder reprocessar
+  const localFileRef = useRef<File | null>(null);
+
   return (
     <div>
       <span className="label">{label}</span>
@@ -243,11 +254,22 @@ function ImageField({
               aria-label={`Enviar ${label.toLowerCase()} do computador`}
               onChange={(e) => {
                 const f = e.target.files?.[0];
-                if (f) onUpload(f);
+                if (f) {
+                  localFileRef.current = f;
+                  onUpload(f);
+                }
                 e.currentTarget.value = "";
               }}
             />
           </label>
+
+          {allowRemoveBg && onProcessed && (
+            <RemoveBackgroundButton
+              file={localFileRef.current}
+              compact
+              onDone={(r) => onProcessed(r.blob)}
+            />
+          )}
 
           {value && onCoverPosition && (
             <CoverCropper value={value} position={coverPosition ?? "50% 50%"} onChange={onCoverPosition} />

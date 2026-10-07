@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { nanoid } from "nanoid";
-import { Images, Plus, X, CircleAlert, Link2, Loader2 } from "lucide-react";
+import { Images, Plus, X, CircleAlert, Link2, Loader2, Eraser } from "lucide-react";
 import type { Site } from "@/lib/types";
 import { StepHeader } from "./Field";
+import { removeBackground } from "@/lib/removeBackground";
 
 const MAX_BYTES = 4 * 1024 * 1024;
 
@@ -53,6 +54,29 @@ export function StepGaleria({ site, set }: { site: Site; set: (p: string, v: unk
 
   function remove(id: string) {
     set("gallery", site.gallery.filter((g) => g.id !== id));
+  }
+
+  /** Remove o fundo de uma foto da galeria e substitui pela versão PNG. */
+  async function stripBackground(id: string, file: File) {
+    setErr(null);
+    try {
+      const result = await removeBackground(file, { tolerance: 30, trim: true });
+      const fd = new FormData();
+      fd.append("file", result.blob, `removbg-${id}.png`);
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setErr(j.error ?? "Falha no upload da imagem processada");
+        return;
+      }
+      const { url } = await res.json();
+      set(
+        "gallery",
+        site.gallery.map((g) => (g.id === id ? { ...g, url } : g)),
+      );
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Falha ao remover o fundo.");
+    }
   }
 
   return (
@@ -134,14 +158,33 @@ export function StepGaleria({ site, set }: { site: Site; set: (p: string, v: unk
             <li key={g.id} className="group relative overflow-hidden rounded-[10px] border border-line">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={g.url} alt="" className="h-[92px] w-full object-cover" />
-              <button
-                type="button"
-                onClick={() => remove(g.id)}
-                className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-md bg-[#0D1110]/60 text-white opacity-0 backdrop-blur-sm transition duration-150 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-[#0D1110]/80"
-                aria-label="Remover foto"
-              >
-                <X size={13} />
-              </button>
+              <div className="absolute inset-x-1 top-1 flex items-center justify-end gap-1 opacity-0 transition duration-150 group-hover:opacity-100 focus-within:opacity-100">
+                <span className="tip-wrap inline-flex">
+                  <label className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md bg-[#0D1110]/70 text-white backdrop-blur-sm transition duration-150 hover:bg-[#0D1110]/85">
+                    <Eraser size={12} />
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      className="sr-only"
+                      aria-label={`Remover fundo da foto ${g.id}`}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) void stripBackground(g.id, f);
+                        e.currentTarget.value = "";
+                      }}
+                    />
+                  </label>
+                  <span className="tip" role="tooltip">Remover fundo</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => remove(g.id)}
+                  className="flex h-6 w-6 items-center justify-center rounded-md bg-[#0D1110]/70 text-white backdrop-blur-sm transition duration-150 hover:bg-danger"
+                  aria-label="Remover foto"
+                >
+                  <X size={12} />
+                </button>
+              </div>
             </li>
           ))}
         </ul>

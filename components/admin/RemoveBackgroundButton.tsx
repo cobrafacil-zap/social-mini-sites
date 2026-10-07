@@ -9,14 +9,20 @@ import {
 /**
  * Botão "Remover fundo" — processa a imagem no navegador e entrega o PNG
  * já transparente, pronto para o upload normal.
+ *
+ * Aceita o arquivo local (se o usuário acabou de enviar) OU a URL já
+ * cadastrada — assim dá para processar uma imagem que veio do Supabase sem
+ * o usuário precisar escolher o arquivo de novo.
  */
 export function RemoveBackgroundButton({
   file,
+  url,
   onDone,
   label = "Remover fundo",
   compact = false,
 }: {
-  file: File | null;
+  file?: File | null;
+  url?: string;
   onDone: (result: RemoveBgResult) => void;
   label?: string;
   compact?: boolean;
@@ -27,6 +33,8 @@ export function RemoveBackgroundButton({
   const [open, setOpen] = useState(false);
   const [tolerance, setTolerance] = useState(32);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const ready = !!(file || url);
 
   async function run(f: File, tol: number) {
     setBusy(true);
@@ -43,6 +51,23 @@ export function RemoveBackgroundButton({
     }
   }
 
+  /** Sem arquivo local, baixa a imagem que já está cadastrada. */
+  async function runFromUrl(target: string) {
+    setBusy(true);
+    setError(null);
+    setDone(null);
+    try {
+      const res = await fetch(target, { mode: "cors" });
+      if (!res.ok) throw new Error("Não consegui baixar a imagem cadastrada.");
+      const blob = await res.blob();
+      const name = (target.split("/").pop() || "imagem").split("?")[0] || "imagem.png";
+      await run(new File([blob], name, { type: blob.type || "image/png" }), tolerance);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Falha ao baixar a imagem.");
+      setBusy(false);
+    }
+  }
+
   function handlePick(next: File) {
     if (!canRemoveBackground(next)) {
       setError("Formato não suportado. Envie PNG, JPG ou WebP.");
@@ -51,14 +76,20 @@ export function RemoveBackgroundButton({
     void run(next, tolerance);
   }
 
+  function activate() {
+    if (file) void run(file, tolerance);
+    else if (url) void runFromUrl(url);
+    else inputRef.current?.click();
+  }
+
   return (
     <div className="mt-2">
       {compact ? (
         <span className="tip-wrap inline-flex">
           <button
             type="button"
-            onClick={() => inputRef.current?.click()}
-            disabled={busy || !file}
+            onClick={activate}
+            disabled={busy || !ready}
             className="flex items-center gap-1.5 rounded-[9px] border border-dashed border-line-strong bg-paper px-2.5 py-1.5 text-[11.5px] font-medium text-ink-soft transition duration-150 enabled:hover:border-primary/50 enabled:hover:bg-primary-50 enabled:hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
           >
             {busy ? <Loader2 size={12} className="animate-spin" /> : <Eraser size={12} />}
@@ -67,17 +98,6 @@ export function RemoveBackgroundButton({
           <span className="tip" role="tooltip">
             Remove o fundo liso da imagem no navegador
           </span>
-          <input
-            ref={inputRef}
-            type="file"
-            accept="image/png,image/jpeg,image/webp"
-            className="sr-only"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) handlePick(f);
-              e.currentTarget.value = "";
-            }}
-          />
         </span>
       ) : (
         <div className="rounded-[10px] border border-line bg-paper p-2.5">
@@ -121,15 +141,25 @@ export function RemoveBackgroundButton({
             </label>
           )}
 
-          <button
-            type="button"
-            onClick={() => inputRef.current?.click()}
-            disabled={busy || !file}
-            className="mt-2.5 flex w-full items-center justify-center gap-1.5 rounded-[9px] border border-primary/30 bg-white px-3 py-2 text-[12.5px] font-medium text-primary transition duration-150 enabled:hover:bg-primary-50 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {busy ? <Loader2 size={13} className="animate-spin" /> : <Eraser size={13} />}
-            {busy ? "Removendo fundo…" : "Escolher imagem para processar"}
-          </button>
+          <div className="mt-2.5 grid gap-1.5">
+            <button
+              type="button"
+              onClick={activate}
+              disabled={busy || !ready}
+              className="flex w-full items-center justify-center gap-1.5 rounded-[9px] border border-primary/30 bg-white px-3 py-2 text-[12.5px] font-medium text-primary transition duration-150 enabled:hover:bg-primary-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {busy ? <Loader2 size={13} className="animate-spin" /> : <Eraser size={13} />}
+              {busy ? "Removendo fundo…" : file || url ? "Processar imagem atual" : "Escolher imagem"}
+            </button>
+            <button
+              type="button"
+              onClick={() => inputRef.current?.click()}
+              disabled={busy}
+              className="flex w-full items-center justify-center gap-1.5 rounded-[9px] border border-dashed border-line-strong bg-white px-3 py-2 text-[12px] font-medium text-ink-muted transition duration-150 enabled:hover:border-primary/40 enabled:hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Ou escolher outro arquivo
+            </button>
+          </div>
 
           <input
             ref={inputRef}

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { nanoid } from "nanoid";
-import { Images, Plus, X, CircleAlert, Link2, Loader2, Eraser } from "lucide-react";
+import { Images, Plus, X, CircleAlert, Link2, Loader2, Eraser, ImagePlus } from "lucide-react";
 import type { Site } from "@/lib/types";
 import { StepHeader } from "./Field";
 import { removeBackground } from "@/lib/removeBackground";
@@ -61,22 +61,44 @@ export function StepGaleria({ site, set }: { site: Site; set: (p: string, v: unk
     setErr(null);
     try {
       const result = await removeBackground(file, { tolerance: 30, trim: true });
-      const fd = new FormData();
-      fd.append("file", result.blob, `removbg-${id}.png`);
-      const res = await fetch("/api/upload", { method: "POST", body: fd });
-      if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
-        setErr(j.error ?? "Falha no upload da imagem processada");
-        return;
-      }
-      const { url } = await res.json();
-      set(
-        "gallery",
-        site.gallery.map((g) => (g.id === id ? { ...g, url } : g)),
-      );
+      await replaceWithStripped(id, result.blob);
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Falha ao remover o fundo.");
     }
+  }
+
+  /** Processa a foto que já está na galeria, sem pedir o arquivo de novo. */
+  async function stripExisting(id: string, url: string) {
+    setErr(null);
+    try {
+      const res = await fetch(url, { mode: "cors" });
+      if (!res.ok) throw new Error("Não consegui baixar a foto.");
+      const blob = await res.blob();
+      const name = (url.split("/").pop() || "foto").split("?")[0] || "foto.png";
+      const result = await removeBackground(new File([blob], name, { type: blob.type || "image/png" }), {
+        tolerance: 30,
+        trim: true,
+      });
+      await replaceWithStripped(id, result.blob);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Falha ao remover o fundo.");
+    }
+  }
+
+  async function replaceWithStripped(id: string, blob: Blob) {
+    const fd = new FormData();
+    fd.append("file", blob, `removbg-${id}.png`);
+    const res = await fetch("/api/upload", { method: "POST", body: fd });
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}));
+      setErr(j.error ?? "Falha no upload da imagem processada");
+      return;
+    }
+    const { url } = await res.json();
+    set(
+      "gallery",
+      site.gallery.map((g) => (g.id === id ? { ...g, url } : g)),
+    );
   }
 
   return (
@@ -160,13 +182,24 @@ export function StepGaleria({ site, set }: { site: Site; set: (p: string, v: unk
               <img src={g.url} alt="" className="h-[92px] w-full object-cover" />
               <div className="absolute inset-x-1 top-1 flex items-center justify-end gap-1 opacity-0 transition duration-150 group-hover:opacity-100 focus-within:opacity-100">
                 <span className="tip-wrap inline-flex">
-                  <label className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md bg-[#0D1110]/70 text-white backdrop-blur-sm transition duration-150 hover:bg-[#0D1110]/85">
+                  <button
+                    type="button"
+                    onClick={() => void stripExisting(g.id, g.url)}
+                    className="flex h-6 w-6 items-center justify-center rounded-md bg-[#0D1110]/70 text-white backdrop-blur-sm transition duration-150 hover:bg-[#0D1110]/85"
+                    aria-label={`Remover fundo da foto ${g.id}`}
+                  >
                     <Eraser size={12} />
+                  </button>
+                  <span className="tip" role="tooltip">Remover fundo</span>
+                </span>
+                <span className="tip-wrap inline-flex">
+                  <label className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md bg-[#0D1110]/70 text-white backdrop-blur-sm transition duration-150 hover:bg-[#0D1110]/85">
+                    <ImagePlus size={12} />
                     <input
                       type="file"
                       accept="image/png,image/jpeg,image/webp"
                       className="sr-only"
-                      aria-label={`Remover fundo da foto ${g.id}`}
+                      aria-label={`Processar outro arquivo para a foto ${g.id}`}
                       onChange={(e) => {
                         const f = e.target.files?.[0];
                         if (f) void stripBackground(g.id, f);
@@ -174,7 +207,7 @@ export function StepGaleria({ site, set }: { site: Site; set: (p: string, v: unk
                       }}
                     />
                   </label>
-                  <span className="tip" role="tooltip">Remover fundo</span>
+                  <span className="tip" role="tooltip">Usar outro arquivo</span>
                 </span>
                 <button
                   type="button"

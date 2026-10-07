@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Building2, CircleAlert } from "lucide-react";
 import type { Site } from "@/lib/types";
 import { slugify, isValidSlug } from "@/lib/slugify";
@@ -226,8 +226,10 @@ function ImageField({
   onProcessed?: (blob: Blob) => void;
   allowRemoveBg?: boolean;
 }) {
-  // guarda o arquivo local para o "remover fundo" poder reprocessar
-  const localFileRef = useRef<File | null>(null);
+  // guarda o arquivo local para o "remover fundo" poder reprocessar sem
+  // obrigar o usuário a escolher o arquivo de novo (useState, não useRef:
+  // mutar ref não re-renderiza e o botão ficaria travado)
+  const [localFile, setLocalFile] = useState<File | null>(null);
 
   return (
     <div>
@@ -255,7 +257,7 @@ function ImageField({
               onChange={(e) => {
                 const f = e.target.files?.[0];
                 if (f) {
-                  localFileRef.current = f;
+                  setLocalFile(f);
                   onUpload(f);
                 }
                 e.currentTarget.value = "";
@@ -265,7 +267,8 @@ function ImageField({
 
           {allowRemoveBg && onProcessed && (
             <RemoveBackgroundButton
-              file={localFileRef.current}
+              file={localFile}
+              url={value || undefined}
               compact
               onDone={(r) => onProcessed(r.blob)}
             />

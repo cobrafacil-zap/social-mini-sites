@@ -12,6 +12,13 @@ export function Corporate() {
   const co = site.company;
   const areas = [...site.buttons].sort((a, b) => a.order - b.order);
 
+  return (
+    <div className="min-h-full" style={{ background: c.background, color: c.text }}>
+      <style>{`
+        .areas-grid { grid-template-columns: 1fr; }
+        @media (min-width: 640px) { .areas-grid { grid-template-columns: var(--areas-cols); } }
+      `}</style>
+
   // Indicadores estruturais reais (derivados dos campos preenchidos no painel)
   const diasAbertos = Object.values(site.hours).filter((d) => !d.closed).length;
   const canais = [co.whatsapp, co.phone, co.email].filter(Boolean).length;
@@ -108,7 +115,14 @@ export function Corporate() {
             <h2 className="text-[13px] font-semibold uppercase tracking-[0.18em]" style={{ color: c.primary }}>
               Áreas de atuação
             </h2>
-            <ul className="mt-5 grid gap-px sm:grid-cols-2 lg:grid-cols-3" style={{ background: `${c.text}12` }}>
+            {/* colunas adaptativas ao nº de itens: evita buraco quando há 1 ou 2 áreas */}
+            <ul
+              className="areas-grid mt-5 grid gap-px"
+              style={{
+                background: `${c.text}12`,
+                ["--areas-cols" as string]: areasColumnsWide(areas.length),
+              }}
+            >
               {areas.map((a, i) => (
                 <li key={a.id}>
                   <a
@@ -257,6 +271,24 @@ export function Corporate() {
       </section>
     </div>
   );
+}
+
+/**
+ * Escolhe a grade conforme a quantidade de áreas.
+ * Com poucas áreas, forçar 3 colunas deixa um buraco enorme ao lado —
+ * foi exatamente o que apareceu no site da INORCONT (1 área = 2/3 vazio).
+ */
+/**
+ * Escolhe a grade conforme a quantidade de áreas.
+ * Com poucas áreas, forçar 3 colunas deixa um buraco enorme ao lado —
+ * foi exatamente o que apareceu no site da INORCONT (1 área = 2/3 vazio).
+ * No celular é sempre 1 coluna; a partir de 640px entra a grade escolhida.
+ */
+function areasColumnsWide(n: number): string {
+  if (n === 1) return "minmax(0,1fr)";
+  if (n === 2 || n === 4 || n === 5) return "repeat(2, minmax(0,1fr))";
+  if (n === 8) return "repeat(4, minmax(0,1fr))";
+  return "repeat(3, minmax(0,1fr))";
 }
 
 function ContactRow({

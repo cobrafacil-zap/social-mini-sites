@@ -1,10 +1,12 @@
 "use client";
 
-import { Check, Palette, Sparkles, LayoutGrid } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Check, Palette, Sparkles, LayoutGrid, Loader2, ImageIcon } from "lucide-react";
 import type { Site, ButtonStyle, Customization } from "@/lib/types";
 import { radiusFor } from "@/lib/templates";
 import { Field, StepHeader } from "./Field";
 import { MODELS, resolveLayout } from "@/lib/models";
+import { extractLogoColors, palettesFromLogoColors, paletteNames } from "@/lib/logoColors";
 
 type Props = { site: Site; set: (p: string, v: unknown) => void; onSave?: () => Promise<unknown>; saved?: boolean };
 
@@ -67,6 +69,58 @@ function pickSuggestions(site: Site) {
 export function StepEstilo({ site, set, saved }: Props) {
   const c = site.customization;
   const sugg = pickSuggestions(site);
+  const logoUrl = site.company.logoUrl;
+
+  // Paletas derivadas da logomarca — fonte principal de sugestão
+  const [logoPalettes, setLogoPalettes] = useState<Customization[]>([]);
+  const [logoNames, setLogoNames] = useState<string[]>([]);
+  const [logoState, setLogoState] = useState<"idle" | "loading" | "ok" | "empty" | "error">("idle");
+
+  useEffect(() => {
+    if (!logoUrl) {
+      setLogoPalettes([]);
+      setLogoState("idle");
+      return;
+    }
+    let alive = true;
+    setLogoState("loading");
+    const t = setTimeout(() => {
+      extractLogoColors(logoUrl)
+        .then((colors) => {
+          if (!alive) return;
+          const p = palettesFromLogoColors(colors);
+          setLogoPalettes(p);
+          setLogoNames(paletteNames(colors));
+          setLogoState(p.length ? "ok" : "empty");
+        })
+        .catch(() => {
+          if (alive) setLogoState("error");
+        });
+    }, 250);
+    return () => {
+      alive = false;
+      clearTimeout(t);
+    };
+  }, [logoUrl]);
+
+  function applyPalette(p: Customization) {
+    set("customization", { ...c, ...p, layout: resolveLayout(site) });
+  }
+
+  const isActive = (p: Customization) =>
+    p.primary.toLowerCase() === c.primary.toLowerCase() &&
+    p.secondary.toLowerCase() === c.secondary.toLowerCase() &&
+    p.background.toLowerCase() === c.background.toLowerCase();
+
+  function Swatches({ p }: { p: Customization }) {
+    return (
+      <span className="flex gap-1">
+        {[p.primary, p.secondary, p.background, p.text].map((col, i) => (
+          <span key={i} className="h-5 w-5 rounded-full border border-black/10" style={{ background: col }} />
+        ))}
+      </span>
+    );
+  }
 
   function colorField(label: string, key: keyof typeof c) {
     const value = c[key] as string;
@@ -98,8 +152,65 @@ export function StepEstilo({ site, set, saved }: Props) {
       <StepHeader
         icon={Palette}
         title="Personalização visual"
-        description="Cores e estilo dos botões. As sugestões já vêm escolhidas para o segmento do cliente."
+        description="Cores e estilo dos botões. Se houver logomarca, as sugestões vêm das cores dela."
       />
+
+      {logoUrl && logoState !== "idle" && (
+        <div className="mb-4 rounded-xl border border-line bg-paper p-3.5">
+          <div className="mb-2.5 flex items-start gap-2">
+            <ImageIcon size={14} className="mt-0.5 shrink-0 text-primary" />
+            <div>
+              <p className="text-[12.5px] font-medium text-ink">Sugestões da sua logomarca</p>
+              <p className="text-[11.5px] text-muted">
+                Cores extraídas da logo {site.company.name || ""}.
+              </p>
+            </div>
+          </div>
+
+          {logoState === "loading" && (
+            <p className="flex items-center gap-2 rounded-[10px] border border-dashed border-line-strong bg-white px-3 py-6 text-[12.5px] text-muted">
+              <Loader2 size={14} className="animate-spin" /> Analisando as cores da logomarca…
+            </p>
+          )}
+
+          {logoState === "error" && (
+            <p className="rounded-[10px] border border-dashed border-line-strong bg-white px-3 py-5 text-[12.5px] leading-relaxed text-muted">
+              Não consegui ler as cores da logomarca (o servidor da imagem pode estar bloqueando).
+              Envie o arquivo de novo pelo botão abaixo para gerar as sugestões.
+            </p>
+          )}
+
+          {logoState === "empty" && (
+            <p className="rounded-[10px] border border-dashed border-line-strong bg-white px-3 py-5 text-[12.5px] leading-relaxed text-muted">
+              A logo é quase toda clara ou escura, então não há cor de marca definida.
+              Use “Remover fundo” em <b className="text-ink-soft">1. Empresa</b> para destacar a marca,
+              ou escolha uma paleta do segmento abaixo.
+            </p>
+          )}
+
+          {logoState === "ok" && (
+            <div className="grid grid-cols-2 gap-2">
+              {logoPalettes.map((p, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => applyPalette(p)}
+                  className={`flex flex-col gap-2 rounded-[10px] border p-2.5 text-left transition duration-150 active:scale-[0.98] ${
+                    isActive(p) ? "border-primary bg-white shadow-xs" : "border-line bg-white hover:border-line-strong"
+                  }`}
+                >
+                  <Swatches p={p} />
+                  <span className="flex items-center justify-between gap-1">
+                    <span className="truncate text-[11.5px] font-medium text-ink">{logoNames[i] ?? "Paleta"}</span>
+                    {isActive(p) && <Check size={12} className="shrink-0 text-primary" />}
+                  </span>
+                  <span className="truncate font-mono text-[10px] uppercase text-muted">{p.primary}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="rounded-xl border border-line bg-paper p-3.5">
         <div className="mb-2.5 flex items-start gap-2">
@@ -107,7 +218,9 @@ export function StepEstilo({ site, set, saved }: Props) {
           <div>
             <p className="text-[12.5px] font-medium text-ink">{sugg.label}</p>
             <p className="text-[11.5px] text-muted">
-              Baseado em {site.company.category || site.template}. Clique para aplicar.
+              {logoState === "ok"
+                ? "Paletas do segmento, caso prefira não seguir a logomarca."
+                : `Baseado em ${site.company.category || site.template}. Clique para aplicar.`}
             </p>
           </div>
         </div>

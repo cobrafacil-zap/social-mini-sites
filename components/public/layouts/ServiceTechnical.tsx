@@ -9,7 +9,7 @@ import { useLayout, Cover, Logo, OpenBadge, HoursTable, LocationBlock, SocialRow
  * depoimento (texto real) · solicitação de orçamento.
  */
 export function ServiceTechnical() {
-  const { site, c, radius, go, wa, preview } = useLayout();
+  const { site, c, radius, surface, go, wa } = useLayout();
   const co = site.company;
   const services = [...site.buttons].sort((a, b) => a.order - b.order);
   const [before, after] = site.gallery;
@@ -115,7 +115,7 @@ export function ServiceTechnical() {
               { src: before.url, tag: "Antes" },
               { src: after.url, tag: "Depois" },
             ].map((x) => (
-              <figure key={x.tag} className="overflow-hidden" style={{ borderRadius: radius * 0.35 }}>
+              <figure key={x.tag} className="overflow-hidden" style={{ borderRadius: surface * 0.7 }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={x.src} alt={`Serviço — ${x.tag}`} loading="lazy" className="aspect-[4/3] w-full object-cover" />
                 <figcaption
@@ -138,7 +138,7 @@ export function ServiceTechnical() {
           </h2>
           <div className="mt-4 grid grid-cols-3 gap-2">
             {galleryRest.slice(0, 6).map((item) => (
-              <div key={item.id} className="aspect-square overflow-hidden" style={{ borderRadius: radius * 0.3 }}>
+              <div key={item.id} className="aspect-square overflow-hidden" style={{ borderRadius: surface * 0.6 }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={item.url} alt="" loading="lazy" className="h-full w-full object-cover" />
               </div>
@@ -157,7 +157,7 @@ export function ServiceTechnical() {
             <li
               key={d.t}
               className="bg-white p-4"
-              style={{ borderRadius: radius * 0.4, borderLeft: `3px solid ${c.secondary}` }}
+              style={{ borderRadius: surface * 0.7, borderLeft: `3px solid ${c.secondary}` }}
             >
               <p className="text-[13.5px] font-bold">{d.t}</p>
               <p className="mt-1 text-[12.5px] leading-relaxed opacity-70">{d.d}</p>
@@ -174,7 +174,7 @@ export function ServiceTechnical() {
           </h2>
           <blockquote
             className="mt-4 p-5"
-            style={{ background: `${c.text}06`, borderRadius: radius * 0.4 }}
+            style={{ background: `${c.text}06`, borderRadius: surface * 0.7 }}
           >
             <p className="text-[14px] leading-[1.8]">&ldquo;{co.shortDesc}&rdquo;</p>
             {co.name && (
@@ -192,13 +192,13 @@ export function ServiceTechnical() {
           Área de atendimento e horário
         </h2>
         <div className="mt-4 grid gap-5 sm:grid-cols-2">
-          <div className="bg-white p-4" style={{ borderRadius: radius * 0.4 }}>
+          <div className="bg-white p-4" style={{ borderRadius: surface * 0.7 }}>
             <p className="text-[11.5px] font-bold uppercase tracking-[0.12em] opacity-50">Onde atendemos</p>
             <div className="mt-2">
               <LocationBlock actionLabel="Traçar rota" />
             </div>
           </div>
-          <div className="bg-white p-4" style={{ borderRadius: radius * 0.4 }}>
+          <div className="bg-white p-4" style={{ borderRadius: surface * 0.7 }}>
             <p className="text-[11.5px] font-bold uppercase tracking-[0.12em] opacity-50">Funcionamento</p>
             <div className="mt-2">
               <HoursTable compact />
@@ -209,22 +209,6 @@ export function ServiceTechnical() {
           <SocialRow />
         </div>
       </section>
-
-      {/* ---------- ORÇAMENTO ---------- */}
-      {!preview && (
-        <div className="sticky bottom-0 z-30 p-4" style={{ background: c.background, borderTop: `1px solid ${c.text}12` }}>
-          <a
-            href={wa}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => go("whatsapp", wa)}
-            className="flex items-center justify-center gap-2 px-5 py-4 text-[15px] font-bold uppercase tracking-wide text-[#0A0A0A] no-underline"
-            style={{ background: c.secondary, borderRadius: radius * 0.4 }}
-          >
-            Solicitar orçamento
-          </a>
-        </div>
-      )}
 
       <p className="px-5 pb-6 pt-3 text-center text-[11px] opacity-30">{co.name}</p>
     </div>

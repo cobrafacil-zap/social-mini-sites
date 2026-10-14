@@ -9,7 +9,7 @@ import { useLayout, Cover, Logo, LocationBlock, SocialRow, Gallery } from "./sha
  * assimétrico leve) · depoimentos · processo em 4 passos · CTA de agendamento.
  */
 export function ServicePremium() {
-  const { site, c, radius, go, wa, preview } = useLayout();
+  const { site, c, radius, surface, go, wa, preview } = useLayout();
   const co = site.company;
   const services = [...site.buttons].sort((a, b) => a.order - b.order);
 
@@ -56,7 +56,7 @@ export function ServicePremium() {
         <section className="px-6">
           <div
             className="overflow-hidden"
-            style={{ borderRadius: radius * 0.3, boxShadow: `0 24px 60px -28px ${c.text}55` }}
+            style={{ borderRadius: surface * 0.6, boxShadow: `0 24px 60px -28px ${c.text}55` }}
           >
             <Cover src={co.coverUrl} position={co.coverPosition} className="h-[46vh] min-h-[300px] w-full" />
           </div>
@@ -96,7 +96,7 @@ export function ServicePremium() {
                   onClick={() => go("outro", s.link || wa)}
                   className="group flex min-h-14 items-center gap-4 border px-4 py-4 no-underline transition duration-200 sm:gap-5 sm:px-5 sm:py-6"
                   style={{
-                    borderRadius: radius * 0.35,
+                    borderRadius: surface * 0.7,
                     borderColor: `${c.text}14`,
                     background: i === 0 ? `${c.primary}05` : "transparent",
                   }}
@@ -143,7 +143,7 @@ export function ServicePremium() {
             className="mx-auto max-w-[60ch] text-center"
             style={{
               background: `${c.primary}06`,
-              borderRadius: radius * 0.35,
+              borderRadius: surface * 0.7,
               padding: "clamp(22px, 6vw, 34px) clamp(18px, 5vw, 28px)",
             }}
           >

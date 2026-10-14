@@ -8,7 +8,7 @@ import { useLayout, Cover, Logo, LocationBlock, SocialRow, Gallery } from "./sha
  * fotográficos · novidades · destaques · CTA "Falar com a loja".
  */
 export function BoutiqueElegant() {
-  const { site, c, radius, go, wa, preview } = useLayout();
+  const { site, c, radius, surface, go, wa, preview } = useLayout();
   const co = site.company;
   const g = site.gallery;
   const featured = g[0];
@@ -60,7 +60,7 @@ export function BoutiqueElegant() {
       {/* ---------- DESTAQUE / CAPA ---------- */}
       {featured && (
         <section className="mt-10 px-5 sm:mt-16 sm:px-6">
-          <div className="overflow-hidden" style={{ borderRadius: radius * 0.4 }}>
+          <div className="overflow-hidden" style={{ borderRadius: surface }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={featured.url}
@@ -83,7 +83,7 @@ export function BoutiqueElegant() {
           <div className="mt-6 grid grid-cols-2 gap-2.5 sm:mt-10 sm:grid-cols-3 sm:gap-3">
             {novidades.map((n) => (
               <figure key={n.id} className="group">
-                <div className="overflow-hidden" style={{ borderRadius: radius * 0.35 }}>
+                <div className="overflow-hidden" style={{ borderRadius: surface * 0.7 }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={n.url}
@@ -107,7 +107,7 @@ export function BoutiqueElegant() {
               <li key={d.id} className={`flex items-center gap-5 ${i % 2 === 1 ? "flex-row-reverse" : ""}`}>
                 <div
                   className="w-[42%] shrink-0 overflow-hidden"
-                  style={{ borderRadius: radius * 0.35 }}
+                  style={{ borderRadius: surface * 0.7 }}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={d.url} alt="" loading="lazy" className="aspect-[3/4] w-full object-cover" />

@@ -8,7 +8,7 @@ import { useLayout, Cover, Logo, OpenBadge, HoursTable, LocationBlock, SocialRow
  * "Mais pedidos" · galeria · barra fixa de WhatsApp.
  */
 export function RestaurantClassic() {
-  const { site, c, radius, go, wa, preview, open } = useLayout();
+  const { site, c, radius, surface, go, wa, open } = useLayout();
   const co = site.company;
 
   // "Mais pedidos" e "cardápio" saem dos botões reais do editor
@@ -95,7 +95,7 @@ export function RestaurantClassic() {
               <figure
                 key={g.id}
                 className="w-[150px] shrink-0 overflow-hidden bg-white shadow-sm"
-                style={{ borderRadius: radius }}
+                style={{ borderRadius: surface }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={g.url} alt="" loading="lazy" className="h-[110px] w-full object-cover" />
@@ -119,7 +119,7 @@ export function RestaurantClassic() {
                 rel="noopener noreferrer"
                 onClick={() => go("outro", b.link || wa)}
                 className="flex items-center justify-between gap-3 border px-4 py-4 no-underline transition duration-150 hover:opacity-80"
-                style={{ borderRadius: radius, borderColor: `${c.primary}2A`, background: "#fff" }}
+                style={{ borderRadius: surface, borderColor: `${c.primary}2A`, background: "#fff" }}
               >
                 <span className="min-w-0">
                   <span className="block text-[15px] font-semibold" style={{ color: c.text }}>
@@ -171,29 +171,6 @@ export function RestaurantClassic() {
       <div className="px-5 pb-4">
         <SocialRow />
       </div>
-
-      {/* ---------- BARRA FIXA DE WHATSAPP ---------- */}
-      {!preview && (
-        <div
-          className="sticky bottom-0 z-30 flex items-center gap-3 px-5 py-3 shadow-[0_-6px_20px_-8px_rgba(0,0,0,.18)]"
-          style={{ background: c.background, borderTop: `1px solid ${c.text}14` }}
-        >
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[13px] font-semibold">{co.name}</p>
-            <p className="text-[11.5px] opacity-55">Reservas e pedidos</p>
-          </div>
-          <a
-            href={wa}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => go("whatsapp", wa)}
-            className="shrink-0 bg-[#1EA956] px-5 py-3 text-[13.5px] font-bold text-white no-underline"
-            style={{ borderRadius: radius }}
-          >
-            Falar no WhatsApp
-          </a>
-        </div>
-      )}
 
       <p className="px-5 pb-6 pt-2 text-center text-[11px] opacity-35">Criado com Social Mini Sites</p>
     </div>

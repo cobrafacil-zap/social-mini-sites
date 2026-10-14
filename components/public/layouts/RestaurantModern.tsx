@@ -8,7 +8,7 @@ import { useLayout, Cover, HoursTable, LocationBlock, SocialRow } from "./shared
  * horizontais · avaliação real · CTA fixo "Pedir agora".
  */
 export function RestaurantModern() {
-  const { site, c, radius, go, wa, preview, open } = useLayout();
+  const { site, c, radius, surface, go, wa, open } = useLayout();
   const co = site.company;
   const combos = site.gallery.slice(0, 3);
   const orderButtons = site.buttons.filter((b) => /ped|delivery|reserv|encomend|agend/i.test(b.name + b.link));
@@ -35,7 +35,7 @@ export function RestaurantModern() {
           {/* oferta do dia */}
           <div
             className="mt-5 flex items-center gap-3 p-3.5"
-            style={{ background: c.primary, color: "#fff", borderRadius: radius }}
+            style={{ background: c.primary, color: "#fff", borderRadius: surface }}
           >
             <span
               className="flex h-11 w-11 shrink-0 items-center justify-center text-[18px] font-black"
@@ -110,7 +110,7 @@ export function RestaurantModern() {
               <article
                 key={g.id}
                 className="w-[210px] shrink-0 border-2 bg-white"
-                style={{ borderRadius: radius, borderColor: c.text }}
+                style={{ borderRadius: surface, borderColor: c.text }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={g.url} alt="" loading="lazy" className="h-[140px] w-full object-cover" />
@@ -154,7 +154,7 @@ export function RestaurantModern() {
               <figure
                 key={i}
                 className="border-l-4 bg-white p-4"
-                style={{ borderRadius: radius * 0.5, borderLeftColor: c.secondary }}
+                style={{ borderRadius: surface * 0.5, borderLeftColor: c.secondary }}
               >
                 <p className="text-[13.5px] leading-relaxed">{t}</p>
                 <figcaption className="mt-2 text-[11.5px] font-bold uppercase tracking-[0.1em] opacity-45">
@@ -175,7 +175,7 @@ export function RestaurantModern() {
           </div>
           <div
             className="p-4"
-            style={{ background: `${c.primary}0F`, borderRadius: radius }}
+            style={{ background: `${c.primary}0F`, borderRadius: surface }}
           >
             <p className="text-[11.5px] font-black uppercase tracking-[0.14em]" style={{ color: c.primary }}>
               Delivery
@@ -206,25 +206,6 @@ export function RestaurantModern() {
           <SocialRow />
         </div>
       </section>
-
-      {/* ---------- CTA FIXO ---------- */}
-      {!preview && (
-        <div
-          className="sticky bottom-0 z-30 px-4 py-3"
-          style={{ background: c.background, borderTop: `2px solid ${c.text}` }}
-        >
-          <a
-            href={wa}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => go("whatsapp", wa)}
-            className="flex items-center justify-center gap-2 bg-[#1EA956] px-5 py-4 text-[16px] font-black uppercase tracking-wide text-white no-underline"
-            style={{ borderRadius: radius }}
-          >
-            Pedir agora
-          </a>
-        </div>
-      )}
 
       <p className="px-5 pb-6 pt-3 text-center text-[11px] opacity-30">
         {co.name || "Criado com Social Mini Sites"}

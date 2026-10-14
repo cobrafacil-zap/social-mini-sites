@@ -8,7 +8,7 @@ import { useLayout, Cover, Logo, HoursTable, LocationBlock, SocialRow } from "./
  * estruturado) · sobre · diferenciais · cases (galeria) · contato comercial.
  */
 export function Corporate() {
-  const { site, c, radius, go, wa, preview } = useLayout();
+  const { site, c, radius, surface, go, wa, preview } = useLayout();
   const co = site.company;
   const areas = [...site.buttons].sort((a, b) => a.order - b.order);
 
@@ -84,7 +84,7 @@ export function Corporate() {
 
             <div
               className="overflow-hidden"
-              style={{ borderRadius: radius * 0.35, boxShadow: "0 20px 50px -22px rgb(0 0 0 / .5)" }}
+              style={{ borderRadius: surface * 0.7, boxShadow: "0 20px 50px -22px rgb(0 0 0 / .5)" }}
             >
               <Cover src={co.coverUrl} position={co.coverPosition} className="h-[230px] w-full lg:h-[300px]" />
             </div>
@@ -197,7 +197,7 @@ export function Corporate() {
                 <li
                   key={g.id}
                   className={`overflow-hidden ${i % 3 === 0 ? "lg:row-span-2" : ""}`}
-                  style={{ borderRadius: radius * 0.3 }}
+                  style={{ borderRadius: surface * 0.6 }}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img

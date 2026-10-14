@@ -28,19 +28,31 @@ const REGISTRY = {
  * Miniatura real: renderiza o layout de verdade, com os dados do segmento,
  * dentro de um frame estreito escalado por CSS.
  */
-export function LayoutPreview({ layout, className = "" }: { layout: LayoutKey; className?: string }) {
+export function LayoutPreview({
+  layout,
+  className = "",
+  variant = "card",
+}: {
+  layout: LayoutKey;
+  className?: string;
+  variant?: "card" | "full";
+}) {
   const site = useMemo(() => demoSiteForLayout(layout), [layout]);
   const Layout = REGISTRY[layout] ?? RestaurantClassic;
+  const full = variant === "full";
 
   return (
     <div
-      className={`relative overflow-hidden bg-[#EDEBE4] ${className}`}
-      aria-hidden="true"
+      className={`relative ${full ? "h-full overflow-y-auto bg-white" : "overflow-hidden bg-[#EDEBE4]"} ${className}`}
+      aria-hidden={!full}
     >
-      <div className="absolute left-1/2 top-0 origin-top" style={{ width: 390, transform: "translateX(-50%) scale(0.62)" }}>
+      <div
+        className={full ? "mx-auto w-full" : "absolute left-1/2 top-0 origin-top"}
+        style={full ? { width: "100%" } : { width: 390, transform: "translateX(-50%) scale(0.7)" }}
+      >
         <div className="pointer-events-none select-none [&_*]:!pointer-events-none">
-          <LayoutProvider site={site} interactive={false} onEvent={() => {}} preview>
-            <div style={{ width: 390, background: "#fff" }}>
+          <LayoutProvider site={site} interactive={false} onEvent={() => {}} preview={!full}>
+            <div style={{ width: full ? "100%" : 390, background: "#fff" }}>
               <Layout />
             </div>
           </LayoutProvider>

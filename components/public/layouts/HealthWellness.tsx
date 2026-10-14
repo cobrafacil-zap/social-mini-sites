@@ -10,7 +10,7 @@ import { useLayout, Cover, Logo, LocationBlock, SocialRow } from "./shared";
  * CTA "Agendar atendimento".
  */
 export function HealthWellness() {
-  const { site, c, radius, go, wa, preview } = useLayout();
+  const { site, c, radius, surface, go, wa, preview } = useLayout();
   const co = site.company;
 
   const especialidades = site.buttons.filter((b) => b.name.trim());
@@ -85,7 +85,7 @@ export function HealthWellness() {
         <section className="px-5 pb-12 sm:px-6 sm:pb-16">
           <div
             className="overflow-hidden"
-            style={{ borderRadius: radius * 1.2, background: `${c.secondary}26` }}
+            style={{ borderRadius: surface, background: `${c.secondary}26` }}
           >
             <Cover
               src={co.coverUrl}
@@ -137,7 +137,7 @@ export function HealthWellness() {
             <li
               key={i}
               className="flex gap-4 bg-white p-4"
-              style={{ borderRadius: radius * 0.8, boxShadow: "0 1px 2px rgb(0 0 0 / .04)" }}
+              style={{ borderRadius: surface * 0.8, boxShadow: "0 1px 2px rgb(0 0 0 / .04)" }}
             >
               <span
                 className="mt-1 h-2 w-2 shrink-0 rounded-full"

@@ -9,7 +9,7 @@ import { useLayout, Cover, Logo, LocationBlock, SocialRow } from "./shared";
  * Instagram integrado · CTA de WhatsApp.
  */
 export function StoreUrban() {
-  const { site, c, radius, go, wa, preview } = useLayout();
+  const { site, c, radius, surface, go, wa, preview } = useLayout();
   const co = site.company;
   const g = site.gallery;
   const drop = g[0];
@@ -81,7 +81,7 @@ export function StoreUrban() {
         <section className="p-5">
           <div
             className="relative overflow-hidden"
-            style={{ borderRadius: radius, border: `2px solid ${c.text}` }}
+            style={{ borderRadius: surface, border: `2px solid ${c.text}` }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -122,7 +122,7 @@ export function StoreUrban() {
               >
                 <div
                   className="overflow-hidden"
-                  style={{ borderRadius: radius * 0.4, border: `1.5px solid ${c.text}` }}
+                  style={{ borderRadius: surface * 0.7, border: `1.5px solid ${c.text}` }}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -164,7 +164,7 @@ export function StoreUrban() {
               >
                 <div
                   className="overflow-hidden"
-                  style={{ borderRadius: radius * 0.4, background: c.text }}
+                  style={{ borderRadius: surface * 0.7, background: c.text }}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={d.url} alt="" loading="lazy" className="h-[190px] w-full object-cover opacity-95" />

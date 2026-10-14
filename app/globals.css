@@ -249,6 +249,10 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+.mini-site-whatsapp {
+  animation: mini-whatsapp-in 520ms 180ms cubic-bezier(0.18, 0.72, 0.25, 1.2) both;
+}
+
 .mini-site-motion > div > header {
   animation: mini-site-rise-in 760ms cubic-bezier(0.18, 0.72, 0.25, 1) both;
 }
@@ -306,6 +310,17 @@ body {
   }
 }
 
+@keyframes mini-whatsapp-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @media (max-width: 480px) {
   .mini-site-public {
     width: calc(100% - 16px);
@@ -331,16 +346,6 @@ body {
   .mini-site-public iframe {
     display: block;
     max-width: 100%;
-    border-radius: 14px;
-  }
-
-  .mini-site-public :is(figure, article, blockquote) {
-    overflow: hidden;
-    border-radius: 16px !important;
-  }
-
-  .mini-site-public ul[class*="grid"] > li {
-    overflow: hidden;
     border-radius: 14px;
   }
 
@@ -376,6 +381,7 @@ body {
 /* Respeita preferências de movimento */
 @media (prefers-reduced-motion: reduce) {
   .mini-site-motion > div > header,
+  .mini-site-whatsapp,
   .mini-reveal,
   .mini-reveal.is-visible,
   .mini-reveal-item,

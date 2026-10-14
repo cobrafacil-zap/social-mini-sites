@@ -9,6 +9,22 @@ import { resolveLayout } from "@/lib/models";
 
 export { resolveLayout };
 
+/**
+ * Raio para superfícies (cards, fotos, mapas, depoimentos).
+ *
+ * O `radius` dos botões pode ser 999 no estilo pílula — aplicar esse valor
+ * em superfícies virava cápsulas e círculos (foi o que quebrou o site da
+ * JRLL Rações). Superfícies ficam entre 4 e 24px, independente do botão.
+ */
+export function surfaceRadius(buttonRadius: number, factor = 1): number {
+  const base = !Number.isFinite(buttonRadius)
+    ? 14
+    : buttonRadius >= 100
+      ? 18
+      : buttonRadius;
+  return Math.min(24, Math.max(4, Math.round(base * factor)));
+}
+
 /* ============================================================
    Contexto compartilhado pelos 8 layouts
    ============================================================ */
@@ -17,6 +33,8 @@ export type LayoutCtx = {
   site: Site;
   c: Customization;
   radius: number;
+  /** Raio para superfícies (cards, imagens, mapas) — sempre contido. */
+  surface: number;
   open: boolean;
   now: Date;
   interactive: boolean;
@@ -48,10 +66,12 @@ export function LayoutProvider({
 
   const ctx = useMemo<LayoutCtx>(() => {
     const wa = waLink(site.company.whatsapp, site.company.whatsappMessage);
+    const radius = radiusFor(c.buttonStyle);
     return {
       site,
       c,
-      radius: radiusFor(c.buttonStyle),
+      radius,
+      surface: surfaceRadius(radius),
       open: isOpenNow(site.hours, now),
       now,
       interactive,
@@ -150,10 +170,10 @@ export function HoursTable({ compact = false }: { compact?: boolean }) {
 }
 
 export function LocationBlock({ actionLabel = "Como chegar" }: { actionLabel?: string }) {
-  const { site, go, radius } = useLayout();
+  const { site, go, radius, surface } = useLayout();
   const addr = fullAddress(site.location);
   if (!addr) return null;
-  const mapRadius = Math.max(10, radius * 0.6);
+  const mapRadius = surface;
   return (
     <div>
       <p className="text-[13.5px] leading-relaxed">{addr}</p>

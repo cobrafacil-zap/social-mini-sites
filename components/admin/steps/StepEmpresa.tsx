@@ -5,7 +5,8 @@ import { Building2, CircleAlert } from "lucide-react";
 import type { Site } from "@/lib/types";
 import { slugify, isValidSlug } from "@/lib/slugify";
 import { Field, StepHeader, Section } from "./Field";
-import { AiAssistButton } from "@/components/admin/AiAssistButton";
+import { AiSuggestBox } from "@/components/admin/AiSuggestBox";
+import { suggestSlogans, suggestShortDescs, polishHistory } from "@/lib/assistant";
 import { RemoveBackgroundButton } from "@/components/admin/RemoveBackgroundButton";
 
 const MAX_BYTES = 4 * 1024 * 1024;
@@ -123,8 +124,10 @@ export function StepEmpresa({ site, set }: { site: Site; set: (p: string, v: unk
             onChange={(e) => set("company.slogan", e.target.value)}
             placeholder="Sabor autêntico da Itália"
           />
-          <AiAssistButton
+          <AiSuggestBox
             label="Gerar slogan"
+            getOptions={() => suggestSlogans(site)}
+            onApply={(t) => set("company.slogan", t)}
             className="mt-1.5"
           />
         </Field>
@@ -138,7 +141,12 @@ export function StepEmpresa({ site, set }: { site: Site; set: (p: string, v: unk
           onChange={(e) => set("company.shortDesc", e.target.value)}
           placeholder="Pizzas, porções e sabores especiais para compartilhar bons momentos."
         />
-        <AiAssistButton label="Criar descrição" className="mt-1.5" />
+        <AiSuggestBox
+          label="Criar descrição"
+          getOptions={() => suggestShortDescs(site)}
+          onApply={(t) => set("company.shortDesc", t)}
+          className="mt-1.5"
+        />
       </Field>
 
       <Field label="História da empresa" hint="Bloco 'Sobre nós' do mini site.">
@@ -148,7 +156,23 @@ export function StepEmpresa({ site, set }: { site: Site; set: (p: string, v: unk
           value={c.history}
           onChange={(e) => set("company.history", e.target.value)}
         />
-        <AiAssistButton label="Melhorar com IA" className="mt-1.5" />
+        <AiSuggestBox
+          label="Revisar texto"
+          hint="Pequenos acertos de revisão, aqui no navegador."
+          getOptions={() => {
+            const polished = polishHistory(c.history);
+            return polished
+              ? [{ text: polished.text, note: polished.changes.join(" · ") }]
+              : [];
+          }}
+          missingHint={
+            c.history.trim()
+              ? "O texto já está revisado — nada a ajustar."
+              : "Escreva a história primeiro; depois eu reviso pontuação e espaçamento."
+          }
+          onApply={(t) => set("company.history", t)}
+          className="mt-1.5"
+        />
       </Field>
 
       <Section title="Imagens">

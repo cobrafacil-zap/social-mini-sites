@@ -64,7 +64,7 @@ export function SiteList({
   }
 
   return (
-    <section className="panel overflow-hidden" aria-labelledby="seus-sites">
+    <section className="panel" aria-labelledby="seus-sites">
       <div className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3.5 sm:px-5">
         <div className="min-w-0 flex-1">
           <h2 id="seus-sites" className="section-title">Seus mini sites</h2>
@@ -147,7 +147,7 @@ export function SiteList({
       ) : filtered.length === 0 ? (
         <EmptyFilter q={q} onClear={() => setQ("")} hasStatus={!!statusFilter} />
       ) : (
-        <ul className="divide-y divide-line">
+        <ul className="divide-y divide-line overflow-hidden rounded-b-xl">
           {filtered.map((s) => {
             const conv = conversion(s.views, s.whatsapp);
             return (

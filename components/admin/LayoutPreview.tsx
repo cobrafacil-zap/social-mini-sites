@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import { LayoutProvider } from "@/components/public/layouts/shared";
 import { RestaurantClassic } from "@/components/public/layouts/RestaurantClassic";
 import { RestaurantModern } from "@/components/public/layouts/RestaurantModern";
@@ -24,6 +24,10 @@ const REGISTRY = {
   corporate: Corporate,
 } as const;
 
+/** Largura real do layout dentro da miniatura + escala aplicada. */
+const CARD_WIDTH = 390;
+const CARD_SCALE = 0.7;
+
 /**
  * Miniatura real: renderiza o layout de verdade, com os dados do segmento,
  * dentro de um frame estreito escalado por CSS.
@@ -41,14 +45,58 @@ export function LayoutPreview({
   const Layout = REGISTRY[layout] ?? RestaurantClassic;
   const full = variant === "full";
 
+  // Tour animado no hover (só na miniatura do cartão): percorre o site
+  // inteiro dentro do frame, do topo ao rodapé, para ver o layout completo
+  // antes de escolher. A distância é medida no conteúdo real, então funciona
+  // para qualquer altura de página.
+  const frameRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [shift, setShift] = useState(0);
+  const [tourMs, setTourMs] = useState(0);
+  const touringRef = useRef(false);
+
+  function startTour() {
+    if (full || touringRef.current) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const frame = frameRef.current;
+    const content = contentRef.current;
+    if (!frame || !content) return;
+    const max = content.offsetHeight * CARD_SCALE - frame.clientHeight;
+    if (max <= 0) return;
+    touringRef.current = true;
+    // Velocidade constante (~500px/s visuais), limitada para não demorar.
+    setTourMs(Math.min(7000, Math.max(2500, (max / 500) * 1000)));
+    setShift(max);
+  }
+
+  function stopTour() {
+    if (!touringRef.current) return;
+    touringRef.current = false;
+    setTourMs(600);
+    setShift(0);
+  }
+
   return (
     <div
+      ref={full ? undefined : frameRef}
+      onMouseEnter={full ? undefined : startTour}
+      onMouseLeave={full ? undefined : stopTour}
       className={`relative ${full ? "h-full overflow-y-auto bg-white" : "overflow-hidden bg-[#EDEBE4]"} ${className}`}
       aria-hidden={!full}
     >
       <div
+        ref={full ? undefined : contentRef}
         className={full ? "mx-auto w-full" : "absolute left-1/2 top-0 origin-top"}
-        style={full ? { width: "100%" } : { width: 390, transform: "translateX(-50%) scale(0.7)" }}
+        style={
+          full
+            ? { width: "100%" }
+            : {
+                width: CARD_WIDTH,
+                transform: `translateX(-50%) translateY(${-shift}px) scale(${CARD_SCALE})`,
+                transition: tourMs > 0 ? `transform ${tourMs}ms ease-in-out` : undefined,
+                willChange: "transform",
+              }
+        }
       >
         <div className="pointer-events-none select-none [&_*]:!pointer-events-none">
           <LayoutProvider site={site} interactive={false} onEvent={() => {}} preview={!full}>

@@ -14,6 +14,8 @@ type Props = {
   onClick?: () => void;
   active?: boolean;
   hint?: string;
+  className?: string;
+  style?: React.CSSProperties;
 };
 
 /**
@@ -22,6 +24,7 @@ type Props = {
  */
 export function MetricCard({
   label, value, Icon, tone = "neutral", sub, delta, deltaLabel, onClick, active, hint,
+  className = "", style,
 }: Props) {
   const tones: Record<string, string> = {
     neutral: "bg-paper-alt text-ink-soft",
@@ -45,9 +48,10 @@ export function MetricCard({
       {...(clickable
         ? { type: "button" as const, onClick, "aria-pressed": !!active }
         : {})}
+      style={style}
       className={`card group relative flex w-full flex-col gap-3 p-4 text-left ${
         active ? "border-primary/40 shadow-card ring-1 ring-primary/15" : "card-hover"
-      } ${clickable ? "cursor-pointer" : ""}`}
+      } ${clickable ? "cursor-pointer" : ""} ${className}`}
     >
       <div className="flex items-start justify-between gap-2">
         <p className="text-[11.5px] font-medium leading-tight text-muted">{label}</p>
@@ -76,8 +80,8 @@ export function MetricCard({
 }
 
 export function ConversionCard({
-  views, whatsapp, onClick, active,
-}: { views: number; whatsapp: number; onClick?: () => void; active?: boolean }) {
+  views, whatsapp, onClick, active, className = "", style,
+}: { views: number; whatsapp: number; onClick?: () => void; active?: boolean; className?: string; style?: React.CSSProperties }) {
   const pct = conversion(views, whatsapp);
   const clickable = !!onClick;
   const Tag = (clickable ? "button" : "div") as "button" | "div";
@@ -85,9 +89,10 @@ export function ConversionCard({
   return (
     <Tag
       {...(clickable ? { type: "button" as const, onClick, "aria-pressed": !!active } : {})}
+      style={style}
       className={`card group flex w-full flex-col gap-3 p-4 text-left ${
         active ? "border-primary/40 shadow-card ring-1 ring-primary/15" : "card-hover"
-      } ${clickable ? "cursor-pointer" : ""}`}
+      } ${clickable ? "cursor-pointer" : ""} ${className}`}
     >
       <div className="flex items-start justify-between gap-2">
         <p className="text-[11.5px] font-medium leading-tight text-muted">Taxa de conversão</p>

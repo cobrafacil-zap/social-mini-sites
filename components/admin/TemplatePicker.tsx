@@ -68,7 +68,7 @@ export function TemplatePicker() {
                   className="h-[260px] w-full border-b border-line sm:h-[285px]"
                 />
                 <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full border border-white/70 bg-white/95 px-3 py-1.5 text-[11px] font-semibold text-ink shadow-sm transition duration-150 group-hover:bg-white group-hover:text-primary">
-                  <Eye size={13} /> Ver site completo
+                  <Eye size={13} /> Passe o mouse para percorrer · clique para ampliar
                 </span>
               </button>
 

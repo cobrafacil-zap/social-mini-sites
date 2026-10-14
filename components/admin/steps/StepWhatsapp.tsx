@@ -3,6 +3,8 @@
 import { MessageCircle, ExternalLink } from "lucide-react";
 import type { Site } from "@/lib/types";
 import { waLink } from "@/lib/links";
+import { suggestWhatsappMessages } from "@/lib/assistant";
+import { AiSuggestBox } from "@/components/admin/AiSuggestBox";
 import { Field, StepHeader } from "./Field";
 
 export function StepWhatsapp({ site, set }: { site: Site; set: (p: string, v: unknown) => void }) {
@@ -34,6 +36,13 @@ export function StepWhatsapp({ site, set }: { site: Site; set: (p: string, v: un
           rows={3}
           value={c.whatsappMessage}
           onChange={(e) => set("company.whatsappMessage", e.target.value)}
+        />
+        <AiSuggestBox
+          label="Sugerir mensagem"
+          getOptions={() => suggestWhatsappMessages(site)}
+          missingHint="Preencha o nome da empresa na etapa 1 para gerar a mensagem."
+          onApply={(t) => set("company.whatsappMessage", t)}
+          className="mt-1.5"
         />
       </Field>
 

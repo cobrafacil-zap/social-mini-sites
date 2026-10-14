@@ -51,6 +51,8 @@ export function DashboardView({ data, suggestions }: { data: DashData; suggestio
           sub={`${totals.total - totals.draft} ativos`}
           onClick={() => setStatus(null)}
           active={status === null}
+          className="animate-rise"
+          style={{ animationDelay: "0ms" }}
         />
         <MetricCard
           label="Publicados"
@@ -60,6 +62,8 @@ export function DashboardView({ data, suggestions }: { data: DashData; suggestio
           sub="no ar"
           onClick={() => setStatus((s) => (s === "published" ? null : "published"))}
           active={status === "published"}
+          className="animate-rise"
+          style={{ animationDelay: "60ms" }}
         />
         <MetricCard
           label="Em rascunho"
@@ -69,6 +73,8 @@ export function DashboardView({ data, suggestions }: { data: DashData; suggestio
           sub="não publicado"
           onClick={() => setStatus((s) => (s === "draft" ? null : "draft"))}
           active={status === "draft"}
+          className="animate-rise"
+          style={{ animationDelay: "120ms" }}
         />
         <MetricCard
           label="Visualizações"
@@ -76,6 +82,8 @@ export function DashboardView({ data, suggestions }: { data: DashData; suggestio
           Icon={Eye}
           delta={deltaPct(views7, viewsPrev7)}
           sub="últimos 7 dias"
+          className="animate-rise"
+          style={{ animationDelay: "180ms" }}
         />
         <MetricCard
           label="Cliques no WhatsApp"
@@ -83,10 +91,14 @@ export function DashboardView({ data, suggestions }: { data: DashData; suggestio
           Icon={MessageCircle}
           tone="ok"
           sub={`+${whatsapp7} nesta semana`}
+          className="animate-rise"
+          style={{ animationDelay: "240ms" }}
         />
         <ConversionCard
           views={totals.views}
           whatsapp={totals.whatsapp}
+          className="animate-rise"
+          style={{ animationDelay: "300ms" }}
         />
       </section>
 
@@ -112,8 +124,16 @@ export function DashboardView({ data, suggestions }: { data: DashData; suggestio
 
 function Header() {
   return (
-    <header className="mb-5 flex flex-wrap items-end justify-between gap-4">
-      <div>
+    <header className="relative mb-5 flex flex-wrap items-end justify-between gap-4 overflow-hidden rounded-2xl border border-line bg-white px-5 py-5 shadow-xs sm:px-6">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(420px 160px at 12% 0%, rgb(20 92 75 / 0.08), transparent 70%), radial-gradient(360px 150px at 95% 100%, rgb(20 92 75 / 0.06), transparent 70%)",
+        }}
+      />
+      <div className="relative">
         <h1 className="text-[26px] font-semibold leading-tight tracking-[-0.03em] text-ink sm:text-[30px]">
           {greeting()} <span aria-hidden="true">👋</span>
         </h1>
@@ -121,7 +141,7 @@ function Header() {
           Aqui está o desempenho dos seus mini sites.
         </p>
       </div>
-      <Link href="/admin/new" className="btn-primary shadow-sm">
+      <Link href="/admin/new" className="btn-primary relative shadow-sm">
         <Plus size={15} /> Criar mini site
       </Link>
     </header>

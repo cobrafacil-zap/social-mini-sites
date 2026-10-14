@@ -240,8 +240,100 @@ body {
   }
 }
 
+/* ============================================================
+   Sites públicos do gerador: movimento e responsividade
+   ============================================================ */
+.mini-site-public {
+  min-width: 0;
+  overflow-x: clip;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mini-site-motion > div > header {
+  animation: mini-site-rise-in 650ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.mini-reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 520ms ease,
+    transform 520ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.mini-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes mini-site-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.publish-success-mark {
+  animation: mini-publish-pop 520ms cubic-bezier(0.2, 0.8, 0.25, 1.35) both;
+}
+
+@keyframes mini-publish-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.55) rotate(-12deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .mini-site-public,
+  .mini-site-public * {
+    min-width: 0;
+  }
+
+  .mini-site-public h1,
+  .mini-site-public h2,
+  .mini-site-public h3,
+  .mini-site-public p,
+  .mini-site-public a {
+    overflow-wrap: anywhere;
+  }
+
+  .mini-site-public iframe {
+    display: block;
+    max-width: 100%;
+  }
+
+  .mini-site-public [class*="sticky bottom-0"] {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+
+  .mini-site-public a,
+  .mini-site-public button,
+  .mini-site-public summary {
+    touch-action: manipulation;
+  }
+}
+
 /* Respeita preferências de movimento */
 @media (prefers-reduced-motion: reduce) {
+  .mini-site-motion > div > header,
+  .mini-reveal,
+  .mini-reveal.is-visible,
+  .publish-success-mark {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
   *,
   *::before,
   *::after {

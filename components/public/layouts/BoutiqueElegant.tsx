@@ -18,7 +18,7 @@ export function BoutiqueElegant() {
   return (
     <div className="min-h-full" style={{ background: c.background, color: c.text }}>
       {/* ---------- HERO EDITORIAL ---------- */}
-      <header className="px-6 pt-14 text-center">
+      <header className="px-5 pt-9 text-center sm:px-6 sm:pt-14">
         {co.logoUrl && (
           <Logo
             src={co.logoUrl}
@@ -34,7 +34,7 @@ export function BoutiqueElegant() {
             {co.category}
           </p>
         )}
-        <h1 className="mt-4 text-[40px] font-light uppercase leading-[1.02] tracking-[0.16em]">
+        <h1 className="mt-4 text-[clamp(1.8rem,8vw,2.5rem)] font-light uppercase leading-[1.02] tracking-[0.08em] sm:tracking-[0.16em]">
           {co.name || "Sua Marca"}
         </h1>
         {co.slogan && (
@@ -43,14 +43,14 @@ export function BoutiqueElegant() {
           </p>
         )}
 
-        <div className="mx-auto mt-9 h-px w-10" style={{ background: c.secondary }} />
+        <div className="mx-auto mt-7 h-px w-10 sm:mt-9" style={{ background: c.secondary }} />
 
         <a
           href={wa}
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => go("whatsapp", wa)}
-          className="mt-9 inline-flex items-center gap-2 border px-8 py-3.5 text-[11.5px] font-medium uppercase tracking-[0.24em] no-underline transition duration-200"
+          className="mt-7 inline-flex min-h-11 items-center justify-center gap-2 border px-6 py-3.5 text-center text-[11.5px] font-medium uppercase tracking-[0.18em] no-underline transition duration-200 sm:mt-9 sm:px-8 sm:tracking-[0.24em]"
           style={{ borderColor: c.primary, color: c.primary, borderRadius: 0 }}
         >
           Falar com a loja
@@ -59,14 +59,14 @@ export function BoutiqueElegant() {
 
       {/* ---------- DESTAQUE / CAPA ---------- */}
       {featured && (
-        <section className="mt-16 px-6">
+        <section className="mt-10 px-5 sm:mt-16 sm:px-6">
           <div className="overflow-hidden" style={{ borderRadius: radius * 0.4 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={featured.url}
               alt=""
               loading="lazy"
-              className="h-[62vh] min-h-[380px] w-full object-cover"
+              className="h-[52vh] min-h-[260px] w-full object-cover sm:h-[62vh] sm:min-h-[380px]"
               style={{ objectPosition: "50% 30%" }}
             />
           </div>
@@ -78,9 +78,9 @@ export function BoutiqueElegant() {
 
       {/* ---------- NOVIDADES ---------- */}
       {novidades.length > 0 && (
-        <section className="px-6 py-20">
+        <section className="px-5 py-12 sm:px-6 sm:py-20">
           <h2 className="text-center text-[11px] font-medium uppercase tracking-[0.36em]">Novidades</h2>
-          <div className="mt-10 grid grid-cols-3 gap-3">
+          <div className="mt-6 grid grid-cols-2 gap-2.5 sm:mt-10 sm:grid-cols-3 sm:gap-3">
             {novidades.map((n) => (
               <figure key={n.id} className="group">
                 <div className="overflow-hidden" style={{ borderRadius: radius * 0.35 }}>
@@ -100,9 +100,9 @@ export function BoutiqueElegant() {
 
       {/* ---------- DESTAQUES DA COLEÇÃO ---------- */}
       {destaques.length > 0 && (
-        <section className="px-6 pb-20">
+        <section className="px-5 pb-12 sm:px-6 sm:pb-20">
           <h2 className="text-center text-[11px] font-medium uppercase tracking-[0.36em]">Destaques</h2>
-          <ul className="mt-10 space-y-8">
+          <ul className="mt-6 space-y-6 sm:mt-10 sm:space-y-8">
             {destaques.map((d, i) => (
               <li key={d.id} className={`flex items-center gap-5 ${i % 2 === 1 ? "flex-row-reverse" : ""}`}>
                 <div
@@ -130,7 +130,7 @@ export function BoutiqueElegant() {
 
       {/* ---------- SOBRE ---------- */}
       {co.history && (
-        <section className="px-6 pb-20">
+        <section className="px-5 pb-12 sm:px-6 sm:pb-20">
           <div className="mx-auto max-w-[52ch] text-center">
             <div className="mx-auto mb-6 h-px w-8" style={{ background: c.secondary }} />
             <p className="text-[14px] font-light leading-[2] opacity-75">{co.history}</p>
@@ -140,7 +140,7 @@ export function BoutiqueElegant() {
 
       {/* ---------- INSTAGRAM / GALERIA ---------- */}
       {site.gallery.length > 1 && (
-        <section className="pb-20">
+        <section className="px-0 pb-12 sm:pb-20">
           <div className="px-6">
             <h2 className="text-center text-[11px] font-medium uppercase tracking-[0.36em]">
               Instagram
@@ -150,14 +150,14 @@ export function BoutiqueElegant() {
             )}
           </div>
           <Gallery
-            className="mt-8 grid grid-cols-3 gap-1.5 px-6"
+            className="mt-6 grid grid-cols-3 gap-1.5 px-5 sm:mt-8 sm:px-6"
             imageClassName="grayscale-[35%] hover:grayscale-0 transition duration-500"
           />
         </section>
       )}
 
       {/* ---------- LOJA / LOCALIZAÇÃO ---------- */}
-      <section className="px-6 pb-20">
+      <section className="px-5 pb-12 sm:px-6 sm:pb-20">
         <h2 className="text-center text-[11px] font-medium uppercase tracking-[0.36em]">A loja</h2>
         <div className="mx-auto mt-8 max-w-[420px]">
           <LocationBlock actionLabel="Agendar visita" />
@@ -169,11 +169,11 @@ export function BoutiqueElegant() {
 
       {/* ---------- CTA FINAL (colado) ---------- */}
       <footer
-        className="px-6 py-16 text-center"
+        className="px-5 py-12 text-center sm:px-6 sm:py-16"
         style={{ background: co.coverUrl ? undefined : `${c.primary}06` }}
       >
         {!preview && co.coverUrl && (
-          <Cover src={co.coverUrl} position={co.coverPosition} className="mb-12 h-[180px] w-full" />
+          <Cover src={co.coverUrl} position={co.coverPosition} className="mb-8 h-[150px] w-full sm:mb-12 sm:h-[180px]" />
         )}
         <p className="text-[11px] font-medium uppercase tracking-[0.34em] opacity-45">Atendimento</p>
         <p className="mt-4 text-[22px] font-light uppercase tracking-[0.1em]">

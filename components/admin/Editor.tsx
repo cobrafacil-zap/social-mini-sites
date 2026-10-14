@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft, ChevronLeft, ChevronRight, Check, Copy, QrCode, ExternalLink,
-  Building2, MapPin, Clock, Images, MousePointerClick, MessageCircle, Palette,
+  Building2, MapPin, Clock, Images, MousePointerClick, MessageCircle, Palette, Save,
   CheckCircle2, Loader2, CircleAlert, Smartphone, type LucideIcon,
 } from "lucide-react";
 import type { Site } from "@/lib/types";
@@ -28,15 +29,45 @@ const STEPS = [
 type StepKey = (typeof STEPS)[number]["key"];
 
 export function Editor({ initial }: { initial: Site }) {
+  const router = useRouter();
   const [site, setSite] = useState<Site>(initial);
   const [step, setStep] = useState(0);
+  const [stepRestored, setStepRestored] = useState(false);
   const [saved, setSaved] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showPublish, setShowPublish] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+  const [publishing, setPublishing] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestRef = useRef(site);
   latestRef.current = site;
+
+  // Guarda a etapa atual neste navegador para continuar do mesmo ponto ao
+  // reabrir o editor. O conteúdo em si já é salvo no banco pelo autosave.
+  useEffect(() => {
+    const key = `mini-site-editor-step:${initial.id}`;
+    try {
+      const raw = window.localStorage.getItem(key);
+      const stored = raw === null ? NaN : Number(raw);
+      if (Number.isInteger(stored) && stored >= 0 && stored < STEPS.length) {
+        setStep(stored);
+      }
+    } catch {
+      // Se o navegador bloquear armazenamento local, o autosave dos dados
+      // continua funcionando normalmente; só não lembra a etapa.
+    }
+    setStepRestored(true);
+  }, [initial.id]);
+
+  useEffect(() => {
+    if (!stepRestored) return;
+    try {
+      window.localStorage.setItem(`mini-site-editor-step:${initial.id}`, String(step));
+    } catch {
+      // O projeto continua salvo no banco; apenas a etapa não é persistida.
+    }
+  }, [initial.id, step, stepRestored]);
 
   useEffect(() => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
@@ -56,20 +87,56 @@ export function Editor({ initial }: { initial: Site }) {
     setSite((prev) => patchSite(prev, path, value));
   }, []);
 
-  const saveNow = useCallback(async () => {
+  const saveNow = useCallback(async (snapshot: Site = latestRef.current) => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     setSaved(false);
     setError(null);
-    const result = await updateSite(latestRef.current.id, latestRef.current);
+    const result = await updateSite(snapshot.id, snapshot);
     if (result?.error) setError(result.error);
     else setError(null);
     setSaved(true);
     return result;
   }, []);
 
-  const publish = () => {
-    setPath("status", "published");
-    setShowPublish(true);
+  const saveAndExit = async () => {
+    setLeaving(true);
+    try {
+      const result = await saveNow();
+      if (!result?.error) router.push(`/admin/client/${site.id}`);
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : "Não foi possível salvar o projeto.");
+    } finally {
+      setLeaving(false);
+    }
+  };
+
+  const publish = async () => {
+    const previous = latestRef.current;
+    const next = patchSite(previous, "status", "published");
+    latestRef.current = next;
+    setSite(next);
+    setPublishing(true);
+
+    try {
+      const result = await saveNow(next);
+      if (result?.error) {
+        latestRef.current = previous;
+        setSite(previous);
+        return;
+      }
+      // Só mostra a confirmação animada depois que a publicação foi salva.
+      setShowPublish(true);
+    } catch (publishError) {
+      latestRef.current = previous;
+      setSite(previous);
+      setError(
+        publishError instanceof Error
+          ? publishError.message
+          : "Não foi possível publicar o mini site."
+      );
+    } finally {
+      setPublishing(false);
+    }
   };
 
   const root = (process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "smdigtal.com").toLowerCase();
@@ -84,8 +151,8 @@ export function Editor({ initial }: { initial: Site }) {
     <div className="min-h-screen bg-paper">
       {/* Topbar */}
       <header className="sticky top-0 z-30 border-b border-line bg-white/85 backdrop-blur-md supports-[backdrop-filter]:bg-white/70">
-        <div className="flex h-14 items-center gap-3 px-4 sm:px-5">
-          <Link href={`/admin/client/${site.id}`} className="btn-ghost btn-sm -ml-2">
+        <div className="flex h-14 items-center gap-2 px-2.5 sm:gap-3 sm:px-5">
+          <Link href={`/admin/client/${site.id}`} className="btn-ghost btn-sm -ml-1 sm:-ml-2">
             <ArrowLeft size={14} />
             <span className="hidden sm:inline">Voltar</span>
           </Link>
@@ -99,10 +166,29 @@ export function Editor({ initial }: { initial: Site }) {
 
           <SaveState saved={saved} error={error} />
 
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <StatusPill status={site.status} />
-            <button type="button" onClick={publish} className="btn-primary btn-sm shadow-sm">
-              Publicar <span className="hidden sm:inline">mini site</span>
+            <button
+              type="button"
+              onClick={() => void saveAndExit()}
+              disabled={leaving}
+              className="btn-secondary btn-sm shadow-sm"
+              aria-label={site.status === "draft" ? "Salvar rascunho e sair" : "Salvar e sair"}
+              title={site.status === "draft" ? "Salvar rascunho e continuar depois" : "Salvar e sair"}
+            >
+              {leaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+              <span className="sm:hidden">Salvar</span>
+              <span className="hidden sm:inline">{site.status === "draft" ? "Salvar rascunho" : "Salvar e sair"}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => void publish()}
+              disabled={publishing}
+              className="btn-primary btn-sm shadow-sm"
+            >
+              {publishing && <Loader2 size={13} className="animate-spin" />}
+              {publishing ? "Publicando…" : "Publicar"}
+              <span className="hidden sm:inline"> mini site</span>
             </button>
           </div>
         </div>
@@ -328,7 +414,7 @@ function PublishSuccess({ url, onClose }: { url: string; onClose: () => void }) 
         className="w-full max-w-[380px] rounded-2xl bg-white p-6 shadow-pop animate-scaleIn"
         onClick={(e) => e.stopPropagation()}
       >
-        <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-ok-50 text-ok">
+        <span className="publish-success-mark mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-ok-50 text-ok">
           <Check size={20} />
         </span>
         <h3 className="mt-3.5 text-center text-[16px] font-semibold tracking-[-0.01em] text-ink">

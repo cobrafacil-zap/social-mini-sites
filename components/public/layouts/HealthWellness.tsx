@@ -40,7 +40,7 @@ export function HealthWellness() {
   return (
     <div className="min-h-full" style={{ background: c.background, color: c.text }}>
       {/* ---------- APRESENTAÇÃO HUMANA ---------- */}
-      <header className="px-6 pb-14 pt-10">
+      <header className="px-5 pb-10 pt-8 sm:px-6 sm:pb-14 sm:pt-10">
         <div className="flex flex-col items-center gap-6 text-center">
           {co.logoUrl ? (
             <Logo src={co.logoUrl} size={96} radius={999} />
@@ -82,7 +82,7 @@ export function HealthWellness() {
 
       {/* ---------- FOTO + TEXTO LADO A LADO ---------- */}
       {(co.coverUrl || co.history || co.shortDesc) && (
-        <section className="px-6 pb-16">
+        <section className="px-5 pb-12 sm:px-6 sm:pb-16">
           <div
             className="overflow-hidden"
             style={{ borderRadius: radius * 1.2, background: `${c.secondary}26` }}
@@ -108,7 +108,7 @@ export function HealthWellness() {
 
       {/* ---------- ESPECIALIDADES ---------- */}
       {especialidades.length > 0 && (
-        <section className="px-6 pb-16">
+        <section className="px-5 pb-12 sm:px-6 sm:pb-16">
           <SectionTitle>Especialidades</SectionTitle>
           <ul className="mt-5 flex flex-wrap justify-center gap-2">
             {especialidades.map((b) => (
@@ -130,7 +130,7 @@ export function HealthWellness() {
       )}
 
       {/* ---------- PARA QUEM É ---------- */}
-      <section className="px-6 pb-16">
+      <section className="px-5 pb-12 sm:px-6 sm:pb-16">
         <SectionTitle>Para quem é o atendimento</SectionTitle>
         <ul className="mt-5 space-y-3">
           {paraQuem.map((p, i) => (
@@ -154,7 +154,7 @@ export function HealthWellness() {
       </section>
 
       {/* ---------- COMO FUNCIONA ---------- */}
-      <section className="px-6 pb-16" style={{ background: `${c.primary}06` }}>
+      <section className="px-5 pb-12 sm:px-6 sm:pb-16" style={{ background: `${c.primary}06` }}>
         <SectionTitle>Como funciona</SectionTitle>
         <ol className="mt-6 space-y-5">
           {comoFunciona.map((p, i) => (
@@ -176,7 +176,7 @@ export function HealthWellness() {
 
       {/* ---------- PERGUNTAS FREQUENTES ---------- */}
       {faq.length > 0 && (
-        <section className="px-6 pb-16">
+        <section className="px-5 pb-12 sm:px-6 sm:pb-16">
           <SectionTitle>Perguntas frequentes</SectionTitle>
           <div className="mt-5 divide-y" style={{ borderColor: `${c.text}12` }}>
             {faq.map((f) => (
@@ -198,7 +198,7 @@ export function HealthWellness() {
       )}
 
       {/* ---------- LOCAL / ONLINE ---------- */}
-      <section className="px-6 pb-16">
+      <section className="px-5 pb-12 sm:px-6 sm:pb-16">
         <div className="mx-auto max-w-[420px]">
           <SectionTitle>Onde acontece</SectionTitle>
           <div className="mt-5">
@@ -212,7 +212,7 @@ export function HealthWellness() {
 
       {/* ---------- CTA FINAL ---------- */}
       <section
-        className="px-6 py-14 text-center"
+        className="px-5 py-10 text-center sm:px-6 sm:py-14"
         style={{ background: c.primary }}
       >
         <p className="text-[20px] font-light leading-[1.5] text-white">
@@ -224,7 +224,7 @@ export function HealthWellness() {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => go("whatsapp", wa)}
-            className="mt-7 inline-flex items-center justify-center bg-white px-9 py-4 text-[14px] font-semibold text-[#0A0A0A] no-underline"
+            className="mt-6 inline-flex min-h-11 items-center justify-center bg-white px-7 py-4 text-[14px] font-semibold text-[#0A0A0A] no-underline sm:mt-7 sm:px-9"
             style={{ borderRadius: radius }}
           >
             Agendar atendimento

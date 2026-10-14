@@ -1,6 +1,6 @@
 "use client";
 
-import type { ComponentType } from "react";
+import { useEffect, useRef, type ComponentType, type ReactNode } from "react";
 import type { EventType, Site } from "@/lib/types";
 import { LayoutProvider, resolveLayout } from "./shared";
 import { RestaurantClassic } from "./RestaurantClassic";
@@ -46,10 +46,66 @@ export function MiniSiteShell({
 }) {
   return (
     <LayoutProvider site={site} interactive={interactive} onEvent={onEvent} preview={preview}>
-      <div className="mx-auto w-full max-w-[460px] overflow-hidden bg-white sm:max-w-[640px] sm:rounded-none xl:max-w-[1080px]">
-        <SiteLayout site={site} preview={preview} />
+      <div
+        className="mini-site-public mx-auto w-full max-w-full overflow-hidden bg-white sm:max-w-[760px] lg:max-w-[960px] xl:max-w-[1080px]"
+        data-layout={resolveLayout(site)}
+      >
+        <MotionSections enabled={!preview}>
+          <SiteLayout site={site} preview={preview} />
+        </MotionSections>
       </div>
     </LayoutProvider>
+  );
+}
+
+/** Revela cada seção ao entrar na tela, sem afetar o modo de preview. */
+function MotionSections({
+  children,
+  enabled,
+}: {
+  children: ReactNode;
+  enabled: boolean;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!enabled || !ref.current) return;
+
+    const layout = ref.current.firstElementChild;
+    if (!layout) return;
+
+    const sections = Array.from(
+      layout.querySelectorAll<HTMLElement>(":scope > section, :scope > footer")
+    );
+
+    if (!("IntersectionObserver" in window)) {
+      sections.forEach((section) => section.classList.add("is-visible"));
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.08, rootMargin: "0px 0px -28px 0px" }
+    );
+
+    sections.forEach((section) => {
+      section.classList.add("mini-reveal");
+      observer.observe(section);
+    });
+
+    return () => observer.disconnect();
+  }, [enabled]);
+
+  return (
+    <div ref={ref} className={enabled ? "mini-site-motion" : undefined}>
+      {children}
+    </div>
   );
 }
 

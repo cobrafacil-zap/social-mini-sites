@@ -21,7 +21,7 @@ export function StoreUrban() {
   return (
     <div className="min-h-full overflow-x-hidden" style={{ background: c.background, color: c.text }}>
       {/* ---------- HERO FULLSCREEN ---------- */}
-      <header className="relative min-h-[86vh]">
+      <header className="relative min-h-[72vh] sm:min-h-[86vh]">
         <Cover
           src={co.coverUrl}
           position={co.coverPosition}
@@ -35,16 +35,16 @@ export function StoreUrban() {
         {/* badge diagonal */}
         {!preview && (
           <span
-            className="absolute right-0 top-8 rotate-6 px-4 py-2 text-[11px] font-black uppercase tracking-[0.16em] text-[#0A0A0A]"
+            className="absolute right-2 top-5 rotate-6 px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-[#0A0A0A] sm:right-0 sm:top-8 sm:px-4 sm:text-[11px] sm:tracking-[0.16em]"
             style={{ background: c.secondary }}
           >
             Drop ativo
           </span>
         )}
 
-        <div className="absolute inset-x-0 bottom-0 p-5">
+        <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7">
           {co.logoUrl && <Logo src={co.logoUrl} size={54} radius={radius * 0.4} />}
-          <h1 className="mt-4 text-[46px] font-black uppercase leading-[0.88] tracking-[-0.045em]">
+          <h1 className="mt-4 text-[clamp(2rem,11vw,2.875rem)] font-black uppercase leading-[0.92] tracking-[-0.045em]">
             {co.name || "SUA MARCA"}
           </h1>
           {co.slogan && (
@@ -118,7 +118,7 @@ export function StoreUrban() {
             {grid.map((item, i) => (
               <figure
                 key={item.id}
-                className={`${i % 3 === 0 ? "translate-y-4" : ""} ${i % 3 === 1 ? "-translate-y-2" : ""}`}
+                className={`${i % 3 === 0 ? "sm:translate-y-4" : ""} ${i % 3 === 1 ? "sm:-translate-y-2" : ""}`}
               >
                 <div
                   className="overflow-hidden"

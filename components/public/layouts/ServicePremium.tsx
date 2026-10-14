@@ -23,15 +23,15 @@ export function ServicePremium() {
   return (
     <div className="min-h-full" style={{ background: c.background, color: c.text }}>
       {/* ---------- HERO MINIMALISTA ---------- */}
-      <header className="px-6 pb-16 pt-16 text-center sm:pt-24">
+      <header className="px-5 pb-10 pt-10 text-center sm:px-6 sm:pb-16 sm:pt-24">
         {co.logoUrl && <Logo src={co.logoUrl} size={58} radius={999} />}
         <p
-          className="mt-8 text-[10px] font-medium uppercase tracking-[0.4em]"
+          className="mt-6 text-[10px] font-medium uppercase tracking-[0.28em] sm:mt-8 sm:tracking-[0.4em]"
           style={{ color: c.secondary }}
         >
           {co.category || "Serviço premium"}
         </p>
-        <h1 className="mt-4 text-[34px] font-light uppercase leading-[1.12] tracking-[0.08em] sm:text-[42px]">
+        <h1 className="mt-4 text-[clamp(1.75rem,8vw,2.625rem)] font-light uppercase leading-[1.12] tracking-[0.06em] sm:tracking-[0.08em]">
           {co.name || "Sua Marca"}
         </h1>
         {co.slogan && (
@@ -44,7 +44,7 @@ export function ServicePremium() {
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => go("whatsapp", wa)}
-          className="mt-10 inline-flex items-center gap-2 px-10 py-4 text-[11.5px] font-semibold uppercase tracking-[0.28em] text-white no-underline transition duration-200"
+          className="mt-7 inline-flex min-h-11 items-center justify-center gap-2 px-7 py-4 text-center text-[11.5px] font-semibold uppercase tracking-[0.16em] text-white no-underline transition duration-200 sm:mt-10 sm:px-10 sm:tracking-[0.28em]"
           style={{ background: c.primary, borderRadius: radius * 0.3 }}
         >
           Agendar atendimento
@@ -65,11 +65,11 @@ export function ServicePremium() {
 
       {/* ---------- APRESENTAÇÃO ---------- */}
       {(co.shortDesc || co.history) && (
-        <section className="px-6 py-20">
+        <section className="px-5 py-12 sm:px-6 sm:py-20">
           <p className="text-center text-[10px] font-semibold uppercase tracking-[0.4em]" style={{ color: c.secondary }}>
             Sobre
           </p>
-          <div className="mx-auto mt-8 max-w-[56ch] space-y-5 text-center">
+          <div className="mx-auto mt-6 max-w-[56ch] space-y-4 text-center sm:mt-8 sm:space-y-5">
             {co.shortDesc && (
               <p className="text-[16px] font-light leading-[1.95]">{co.shortDesc}</p>
             )}
@@ -82,11 +82,11 @@ export function ServicePremium() {
 
       {/* ---------- SERVIÇOS INDIVIDUAIS ---------- */}
       {services.length > 0 && (
-        <section className="px-6 pb-20">
+        <section className="px-5 pb-12 sm:px-6 sm:pb-20">
           <p className="text-center text-[10px] font-semibold uppercase tracking-[0.4em]" style={{ color: c.secondary }}>
             Serviços
           </p>
-          <ul className="mt-10 space-y-3">
+          <ul className="mt-6 space-y-2.5 sm:mt-10 sm:space-y-3">
             {services.map((s, i) => (
               <li key={s.id}>
                 <a
@@ -94,7 +94,7 @@ export function ServicePremium() {
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => go("outro", s.link || wa)}
-                  className="group flex items-center gap-5 border px-5 py-6 no-underline transition duration-200"
+                  className="group flex min-h-14 items-center gap-4 border px-4 py-4 no-underline transition duration-200 sm:gap-5 sm:px-5 sm:py-6"
                   style={{
                     borderRadius: radius * 0.35,
                     borderColor: `${c.text}14`,
@@ -125,12 +125,12 @@ export function ServicePremium() {
 
       {/* ---------- GALERIA SOFISTICADA ---------- */}
       {site.gallery.length > 0 && (
-        <section className="px-6 pb-20">
+        <section className="px-5 pb-12 sm:px-6 sm:pb-20">
           <p className="text-center text-[10px] font-semibold uppercase tracking-[0.4em]" style={{ color: c.secondary }}>
             Galeria
           </p>
           <Gallery
-            className="mt-10 grid grid-cols-4 gap-2.5"
+            className="mt-6 grid grid-cols-3 gap-2 sm:mt-10 sm:grid-cols-4 sm:gap-2.5"
             imageClassName="grayscale-[20%] hover:grayscale-0"
           />
         </section>
@@ -138,10 +138,14 @@ export function ServicePremium() {
 
       {/* ---------- DEPOIMENTOS ---------- */}
       {co.history && (
-        <section className="px-6 pb-20">
+        <section className="px-5 pb-12 sm:px-6 sm:pb-20">
           <div
             className="mx-auto max-w-[60ch] text-center"
-            style={{ background: `${c.primary}06`, borderRadius: radius * 0.35, padding: "34px 28px" }}
+            style={{
+              background: `${c.primary}06`,
+              borderRadius: radius * 0.35,
+              padding: "clamp(22px, 6vw, 34px) clamp(18px, 5vw, 28px)",
+            }}
           >
             <span
               className="block text-[34px] font-light leading-none"
@@ -159,11 +163,11 @@ export function ServicePremium() {
       )}
 
       {/* ---------- PROCESSO ---------- */}
-      <section className="px-6 pb-20">
+      <section className="px-5 pb-12 sm:px-6 sm:pb-20">
         <p className="text-center text-[10px] font-semibold uppercase tracking-[0.4em]" style={{ color: c.secondary }}>
           Como funciona
         </p>
-        <ol className="mt-10 grid grid-cols-2 gap-x-6 gap-y-8">
+        <ol className="mt-7 grid grid-cols-2 gap-x-4 gap-y-6 sm:mt-10 sm:gap-x-6 sm:gap-y-8">
           {processo.map((p) => (
             <li key={p.n} className="text-center">
               <span className="mx-auto flex h-9 w-9 items-center justify-center border text-[11px] font-semibold tabular-nums" style={{ borderColor: `${c.text}22`, color: c.secondary, borderRadius: 999 }}>
@@ -177,7 +181,7 @@ export function ServicePremium() {
       </section>
 
       {/* ---------- ENCERRAMENTO + LOCAL ---------- */}
-      <section className="px-6 pb-20">
+      <section className="px-5 pb-12 sm:px-6 sm:pb-20">
         <div className="mx-auto max-w-[420px]">
           <p className="text-center text-[10px] font-semibold uppercase tracking-[0.4em]" style={{ color: c.secondary }}>
             Onde estamos
@@ -193,13 +197,13 @@ export function ServicePremium() {
 
       {/* ---------- CTA AGENDAMENTO ---------- */}
       {!preview && (
-        <div className="px-6 pb-8">
+        <div className="px-5 pb-6 sm:px-6 sm:pb-8">
           <a
             href={wa}
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => go("whatsapp", wa)}
-            className="flex items-center justify-center gap-2 px-6 py-5 text-[13px] font-semibold uppercase tracking-[0.24em] text-white no-underline"
+            className="flex min-h-14 items-center justify-center gap-2 px-4 py-4 text-center text-[12px] font-semibold uppercase tracking-[0.14em] text-white no-underline sm:px-6 sm:py-5 sm:text-[13px] sm:tracking-[0.24em]"
             style={{ background: c.primary, borderRadius: radius * 0.3 }}
           >
             Agendar atendimento

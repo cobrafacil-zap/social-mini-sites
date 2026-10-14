@@ -96,11 +96,11 @@ export function Corporate() {
       <section className="border-b" style={{ borderColor: `${c.text}12` }}>
         <div className="mx-auto grid max-w-[1100px] grid-cols-3 gap-px" style={{ background: `${c.text}10` }}>
           {indicadores.map((ind) => (
-            <div key={ind.k} className="px-4 py-6 text-center" style={{ background: c.background }}>
-              <p className="text-[28px] font-bold leading-none tracking-[-0.03em] tabular-nums" style={{ color: c.primary }}>
+            <div key={ind.k} className="px-2 py-4 text-center sm:px-4 sm:py-6" style={{ background: c.background }}>
+              <p className="text-[24px] font-bold leading-none tracking-[-0.03em] tabular-nums sm:text-[28px]" style={{ color: c.primary }}>
                 {ind.v}
               </p>
-              <p className="mt-1.5 text-[11px] font-medium uppercase tracking-[0.14em] opacity-55">{ind.k}</p>
+              <p className="mt-1.5 text-[9px] font-medium uppercase tracking-[0.05em] opacity-55 sm:text-[11px] sm:tracking-[0.14em]">{ind.k}</p>
             </div>
           ))}
         </div>
@@ -271,11 +271,6 @@ export function Corporate() {
   );
 }
 
-/**
- * Escolhe a grade conforme a quantidade de áreas.
- * Com poucas áreas, forçar 3 colunas deixa um buraco enorme ao lado —
- * foi exatamente o que apareceu no site da INORCONT (1 área = 2/3 vazio).
- */
 /**
  * Escolhe a grade conforme a quantidade de áreas.
  * Com poucas áreas, forçar 3 colunas deixa um buraco enorme ao lado —

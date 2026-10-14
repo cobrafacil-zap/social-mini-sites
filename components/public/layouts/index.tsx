@@ -78,6 +78,15 @@ function MotionSections({
       layout.querySelectorAll<HTMLElement>(":scope > section, :scope > footer")
     );
 
+    sections.forEach((section) => {
+      section.classList.add("mini-reveal");
+      Array.from(section.children).forEach((child, index) => {
+        if (!(child instanceof HTMLElement) || child.tagName === "STYLE") return;
+        child.classList.add("mini-reveal-item");
+        child.style.setProperty("--reveal-delay", `${Math.min(index, 5) * 65}ms`);
+      });
+    });
+
     if (!("IntersectionObserver" in window)) {
       sections.forEach((section) => section.classList.add("is-visible"));
       return;
@@ -94,10 +103,7 @@ function MotionSections({
       { threshold: 0.08, rootMargin: "0px 0px -28px 0px" }
     );
 
-    sections.forEach((section) => {
-      section.classList.add("mini-reveal");
-      observer.observe(section);
-    });
+    sections.forEach((section) => observer.observe(section));
 
     return () => observer.disconnect();
   }, [enabled]);

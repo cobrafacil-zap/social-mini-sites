@@ -3,14 +3,24 @@ import { redirect } from "next/navigation";
 import { ForgotPasswordForm } from "./ForgotPasswordForm";
 import { AuthShell } from "@/components/auth/AuthShell";
 
-export default async function ForgotPasswordPage() {
+type Props = { searchParams: Promise<{ reset?: string; expired?: string }> };
+
+export default async function ForgotPasswordPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const recovery = params.reset === "1";
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (user) redirect("/admin");
+
+  // Já logado e sem pedido de recuperação: vai direto para o painel.
+  if (user && !recovery) redirect("/admin");
 
   return (
     <AuthShell>
-      <ForgotPasswordForm />
+      <ForgotPasswordForm
+        mode={user && recovery ? "reset" : "request"}
+        expired={params.expired === "1" || (recovery && !user)}
+      />
     </AuthShell>
   );
 }

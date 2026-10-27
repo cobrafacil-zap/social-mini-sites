@@ -1,8 +1,19 @@
 "use server";
 
-import { headers } from "next/headers";
-import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { headers, cookies } from "next/headers";
+import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+
+/** URL pública do projeto (prod usa a canônica; dev usa o host do request). */
+async function siteUrl(): Promise<string> {
+  const headerStore = await headers();
+  const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
+  const proto = headerStore.get("x-forwarded-proto") ?? "https";
+  return (
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (host ? `${proto}://${host.split(",")[0].trim()}` : "")
+  );
+}
 
 function onlyDigits(v: string): string { return (v || "").replace(/\D/g, ""); }
 
@@ -93,15 +104,9 @@ export async function signUp(formData: FormData): Promise<{ error?: string } | v
   }
 
   // Define para onde o Supabase deve redirecionar depois do email de
-  // confirmação (se a confirmação estiver ligada). Em prod, usa a URL
-  // canônica do projeto; em dev, usa o host do request.
-  const headerStore = await headers();
-  const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
-  const proto = headerStore.get("x-forwarded-proto") ?? "https";
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    (host ? `${proto}://${host.split(",")[0].trim()}` : "");
-  const redirectTo = siteUrl ? `${siteUrl.replace(/\/$/, "")}/auth/callback` : undefined;
+  // confirmação (se a confirmação estiver ligada).
+  const base = await siteUrl();
+  const redirectTo = base ? `${base.replace(/\/$/, "")}/auth/callback` : undefined;
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
@@ -132,40 +137,78 @@ export async function signOut(): Promise<void> {
   redirect("/login");
 }
 
-export async function resetPasswordWithCpf(formData: FormData): Promise<{ error?: string; ok?: boolean }> {
+/**
+ * Passo 1 da recuperação: o visitante digita apenas o e-mail.
+ *
+ * Enviamos o link de recuperação do Supabase, que abre `/forgot-password`
+ * já autenticado para ele criar a nova senha. Não existe reset direto por
+ * e-mail: sem essa confirmação, qualquer pessoa que soubesse o seu e-mail
+ * entraria na sua conta.
+ */
+export async function requestPasswordReset(
+  formData: FormData,
+): Promise<{ error?: string; ok?: boolean }> {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
-  const cpf = onlyDigits(String(formData.get("cpf") ?? ""));
-  const newPassword = String(formData.get("newPassword") ?? "");
-  const confirmPassword = String(formData.get("confirmPassword") ?? "");
 
-  if (!email || !cpf) return { error: "Informe e-mail e CPF." };
-  if (!isValidCpf(cpf)) return { error: "CPF inválido." };
-  if (!newPassword || newPassword.length < 6) return { error: "A nova senha precisa ter pelo menos 6 caracteres." };
-  if (newPassword !== confirmPassword) return { error: "As senhas não coincidem." };
-
-  const admin = createServiceClient();
-  // Busca usuário pelo e-mail (lista paginada)
-  let found: { id: string; user_metadata?: Record<string, unknown> } | null = null;
-  let page = 1;
-  const perPage = 100;
-  while (!found) {
-    const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
-    if (error) return { error: "Falha ao buscar usuário." };
-    const match = data.users.find((u) => (u.email ?? "").toLowerCase() === email);
-    if (match) { found = { id: match.id, user_metadata: (match.user_metadata ?? {}) as Record<string, unknown> }; break; }
-    if (data.users.length < perPage) break;
-    page++;
-    if (page > 10) break;
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { error: "Informe um e-mail válido." };
   }
-  if (!found) return { error: "E-mail não encontrado." };
 
-  const storedCpf = onlyDigits(String((found.user_metadata?.cpf ?? found.user_metadata?.cpfFormatted ?? "") as string));
-  // fallback: se usuário antigo sem cpf, nega
-  if (!storedCpf) return { error: "Este e-mail não tem CPF cadastrado. Contate o suporte." };
-  if (storedCpf !== cpf) return { error: "CPF não confere com o cadastrado para este e-mail." };
+  const base = await siteUrl();
+  // Mesmo destino já usado na confirmação de cadastro (garante que está na
+  // lista de URLs permitidas do Supabase). O modo "recovery" vai num cookie
+  // de curta duração, não na query, para o link nunca cair na home.
+  const redirectTo = base ? `${base.replace(/\/$/, "")}/auth/callback` : undefined;
 
-  const { error: updErr } = await admin.auth.admin.updateUserById(found.id, { password: newPassword });
-  if (updErr) return { error: "Não foi possível atualizar a senha. Tente novamente." };
+  const jar = await cookies();
+  jar.set("ms_recovery", "1", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 30,
+  });
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resetPasswordForEmail(
+    email,
+    redirectTo ? { redirectTo } : undefined,
+  );
+
+  if (error && /rate limit|too many|security purposes/i.test(error.message)) {
+    return { error: "Muitos pedidos em sequência. Aguarde alguns minutos e tente de novo." };
+  }
+  if (error && /sending|smtp|mail/i.test(error.message)) {
+    return { error: "Não foi possível enviar o e-mail agora. Tente novamente em instantes." };
+  }
+
+  // Mesma resposta com ou sem conta cadastrada — evita descobrir e-mails.
+  return { ok: true };
+}
+
+/** Passo 2: grava a nova senha. Um campo só, sem confirmação. */
+export async function setNewPassword(
+  formData: FormData,
+): Promise<{ error?: string; ok?: boolean }> {
+  const password = String(formData.get("password") ?? "");
+
+  if (password.length < 6) {
+    return { error: "A senha precisa ter pelo menos 6 caracteres." };
+  }
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "Este link expirou. Peça um novo link de recuperação." };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) {
+    if (/rate limit|too many|security purposes/i.test(error.message)) {
+      return { error: "Muitas tentativas em sequência. Aguarde alguns minutos." };
+    }
+    return { error: "Não foi possível salvar a nova senha. Tente novamente." };
+  }
 
   return { ok: true };
 }

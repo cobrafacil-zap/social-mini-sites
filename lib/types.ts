@@ -51,7 +51,15 @@ export type Customization = {
   buttonStyle: ButtonStyle;
   /** Qual dos 8 layouts renderiza este site. Persistido aqui para não exigir migração. */
   layout?: string;
+  /**
+   * Formato da logomarca. `undefined`/`"auto"` = segue o desenho do modelo.
+   * Qualquer outro valor sobrescreve o raio da logo em todos os layouts.
+   */
+  logoShape?: LogoShape;
 };
+
+/** Formato da logomarca escolhido no editor. */
+export type LogoShape = "auto" | "square" | "rounded" | "circle";
 
 export type Site = {
   id: string;

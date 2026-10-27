@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { Building2, CircleAlert } from "lucide-react";
-import type { Site } from "@/lib/types";
+import type { Site, LogoShape } from "@/lib/types";
 import { slugify, isValidSlug } from "@/lib/slugify";
 import { Field, StepHeader, Section } from "./Field";
+import { logoRadius } from "@/components/public/layouts/shared";
 import { AiSuggestBox } from "@/components/admin/AiSuggestBox";
 import { suggestSlogans, suggestShortDescs, polishHistory } from "@/lib/assistant";
 import { RemoveBackgroundButton } from "@/components/admin/RemoveBackgroundButton";
@@ -182,17 +183,23 @@ export function StepEmpresa({ site, set }: { site: Site; set: (p: string, v: unk
           </p>
         )}
         <div className="grid gap-4 sm:grid-cols-2">
-          <ImageField
-            label="Logo da empresa"
-            value={c.logoUrl}
-            preview={<LogoPreview url={c.logoUrl} />}
-            onChange={(v) => set("company.logoUrl", v)}
-            onUpload={(f) => void upload(f, "logoUrl")}
-            onProcessed={(blob) => void upload(blob, "logoUrl", "removbg.png")}
-            allowRemoveBg
-            hint="Quadrada. Aparece sobre a capa."
-            previewClass="h-16 w-16"
-          />
+          <div>
+            <ImageField
+              label="Logo da empresa"
+              value={c.logoUrl}
+              preview={<LogoPreview url={c.logoUrl} shape={site.customization.logoShape} />}
+              onChange={(v) => set("company.logoUrl", v)}
+              onUpload={(f) => void upload(f, "logoUrl")}
+              onProcessed={(blob) => void upload(blob, "logoUrl", "removbg.png")}
+              allowRemoveBg
+              hint="Quadrada. Aparece sobre a capa."
+              previewClass="h-16 w-16"
+            />
+            <LogoShapePicker
+              value={site.customization.logoShape ?? "auto"}
+              onChange={(v) => set("customization.logoShape", v)}
+            />
+          </div>
           <ImageField
             label="Foto de capa"
             value={c.coverUrl}
@@ -381,12 +388,81 @@ function CoverCropper({
   );
 }
 
-function LogoPreview({ url }: { url: string }) {
+function LogoPreview({ url, shape }: { url: string; shape?: LogoShape }) {
   if (!url) {
     return <span className="text-[12px] text-muted">Sem logo</span>;
   }
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img src={url} alt="Pré-visualização da logo" className="h-full w-full object-contain p-1" />;
+  // Mesma geometria do site publicado: quadrado 64px com o raio escolhido.
+  return (
+    <span
+      className="inline-flex h-16 w-16 items-center justify-center overflow-hidden bg-white"
+      style={{ borderRadius: logoRadius(64, shape) }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={url} alt="Pré-visualização da logo" className="h-full w-full object-contain p-1" />
+    </span>
+  );
+}
+
+/**
+ * Escolha do formato da borda da logomarca, visível na hora do upload.
+ * Vale para os 8 modelos e aparece na hora na prévia ao lado.
+ */
+function LogoShapePicker({
+  value, onChange,
+}: {
+  value: LogoShape;
+  onChange: (v: LogoShape) => void;
+}) {
+  const options: { key: LogoShape; label: string; glyph: React.CSSProperties; dashed?: boolean }[] = [
+    { key: "auto", label: "Automática", glyph: { borderRadius: 7 }, dashed: true },
+    { key: "square", label: "Quadrada", glyph: { borderRadius: 3 } },
+    { key: "rounded", label: "Arredondada", glyph: { borderRadius: 8 } },
+    { key: "circle", label: "Redonda", glyph: { borderRadius: 999 } },
+  ];
+
+  return (
+    <fieldset className="mt-2.5">
+      <legend className="label">Formato da borda</legend>
+      <div className="grid grid-cols-4 gap-1.5" role="radiogroup" aria-label="Formato da borda da logo">
+        {options.map((o) => {
+          const active = value === o.key;
+          return (
+            <button
+              key={o.key}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              title={o.key === "auto" ? "Segue o desenho do modelo" : o.label}
+              onClick={() => onChange(o.key)}
+              className={`flex flex-col items-center gap-1.5 rounded-[10px] border px-1 py-2.5 transition duration-150 active:scale-[0.97] ${
+                active
+                  ? "border-primary/50 bg-primary-50 text-primary"
+                  : "border-line bg-white text-ink-muted hover:border-line-strong hover:text-ink"
+              }`}
+            >
+              <span
+                aria-hidden="true"
+                className="block h-7 w-7 bg-paper-alt"
+                style={{
+                  ...o.glyph,
+                  border: active ? "2px solid currentColor" : "2px dashed #B9C0BB",
+                  background: active ? "currentColor" : undefined,
+                  opacity: active ? 0.85 : 1,
+                }}
+              />
+              <span className="text-[10.5px] font-medium leading-none">{o.label}</span>
+            </button>
+          );
+        })}
+      </div>
+      <span className="hint">
+        {value === "auto"
+          ? "Segue o desenho do modelo escolhido."
+          : "Aplicado na hora na prévia ao lado e no site publicado."}
+      </span>
+    </fieldset>
+  );
 }
 
 function CoverPreview({ url, position }: { url: string; position?: string }) {

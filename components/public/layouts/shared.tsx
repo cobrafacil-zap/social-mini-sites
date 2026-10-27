@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
-import type { Customization, EventType, Site } from "@/lib/types";
+import type { Customization, EventType, LogoShape, Site } from "@/lib/types";
 import { fullAddress, mapsEmbed, mapsLink, waLink, externalUrl, instaUrl } from "@/lib/links";
 import { isOpenNow, todayIndex, DAYS } from "@/lib/hours";
 import { radiusFor } from "@/lib/templates";
@@ -25,6 +25,26 @@ export function surfaceRadius(buttonRadius: number, factor = 1): number {
   return Math.min(24, Math.max(4, Math.round(base * factor)));
 }
 
+/**
+ * Raio da logomarca em pixels para um dado tamanho.
+ *
+ * `auto` (padrão) mantém o desenho de cada modelo; as demais opções
+ * sobrescrevem em todos os 8 layouts — é a escolha feita no editor ao
+ * subir a logo.
+ */
+export function logoRadius(size: number, shape?: LogoShape, fallback?: number): number {
+  switch (shape) {
+    case "square":
+      return Math.max(4, Math.round(size * 0.1));
+    case "rounded":
+      return Math.round(size * 0.28);
+    case "circle":
+      return Math.round(size / 2);
+    case "auto":
+    default:
+      return fallback ?? Math.round(size * 0.25);
+  }
+}
 /* ============================================================
    Contexto compartilhado pelos 8 layouts
    ============================================================ */
@@ -113,11 +133,12 @@ export function Cover({
 }
 
 export function Logo({ src, size = 64, radius }: { src?: string; size?: number; radius?: number }) {
+  const { site } = useLayout();
   if (!src) return null;
   return (
     <span
       className="inline-flex shrink-0 items-center justify-center overflow-hidden bg-white"
-      style={{ width: size, height: size, borderRadius: radius ?? Math.round(size * 0.25) }}
+      style={{ width: size, height: size, borderRadius: logoRadius(size, site.customization.logoShape, radius ?? Math.round(size * 0.25)) }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={src} alt="" className="h-full w-full object-contain p-1" />
